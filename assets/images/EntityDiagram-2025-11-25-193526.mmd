@@ -1,0 +1,167 @@
+---
+config:
+  layout: elk
+---
+classDiagram
+direction TB
+    class GameObject {
+	    +Vector dimensions
+	    +Vector position
+	    +Hitbox hitboxOffsets
+	    +Hitbox hitbox
+	    +Sprite[] sprites
+	    +number currentFrame
+	    +boolean cleanUp
+	    +number renderPriority
+	    +boolean isSolid
+	    +boolean isCollidable
+	    +boolean isConsumable
+	    +boolean wasCollided
+	    +boolean wasConsumed
+	    +Matter.Body body
+	    +update(dt)
+	    +render(offset)
+	    +syncSpriteToBody()
+	    +onConsume(consumer)
+	    +onCollision(collider)
+	    +didCollideWithEntity(hitbox)
+	    +getEntityCollisionDirection(hitbox)
+    }
+
+    class GameEntity {
+	    +Vector position
+	    +Vector dimensions
+	    +number speed
+	    +number health
+	    +number totalHealth
+	    +number damage
+	    +Hitbox hitboxOffsets
+	    +Hitbox hitbox
+	    +StateMachine stateMachine
+	    +Animation currentAnimation
+	    +Sprite[] sprites
+	    +Direction direction
+	    +boolean isDead
+	    +boolean cleanUp
+	    +number renderPriority
+	    +update(dt)
+	    +render(offset)
+	    +didCollideWithEntity(hitbox)
+	    +changeState(state, params)
+    }
+
+    class Cat {
+	    +number attackRange
+	    +number attackCooldown
+	    +number attackDamage
+	    +Hitbox attackHitbox
+	    +Sprite[] idleSprites
+	    +Sprite[] walkingSprites
+	    +Sprite[] attackingSprites
+	    +Sprite[] deadSprites
+	    +boolean isAttacking
+	    +number attackTimer
+	    +initializeStateMachine()
+	    +receiveDamage(damage)
+	    +attack()
+	    +canAttack()
+	    +resetAttackCooldown()
+    }
+
+    class PlayerCat {
+	    +PowerUp activePowerUp
+	    +number powerUpTimer
+	    +number powerUpDuration
+	    +number catsDefeated
+	    +number survivalTime
+	    +number damageDealt
+	    +boolean wantsPlinko
+	    +number originalSpeed
+	    +number originalDamage
+	    +number defenseMultiplier
+	    +handleInput()
+	    +activatePowerUp(type, duration)
+	    +removePowerUp()
+	    +triggerPlinko()
+	    +applyAttackBoost()
+	    +applySpeedBoost()
+	    +applyDefenseBoost()
+	    +updatePowerUpTimer(dt)
+    }
+
+    class CPUCat {
+	    +Vector targetPosition
+	    +number detectionRadius
+	    +GameEntity aggroTarget
+	    +number movementTimer
+	    +number idleTimer
+	    +number aggroRange
+	    +boolean isChasing
+	    +updateAI(dt)
+	    +findNearestTarget(entities)
+	    +moveRandomly(dt)
+	    +moveToTarget(dt)
+	    +chaseTarget(dt)
+	    +attackIfInRange()
+	    +shouldAggro(target)
+	    +calculateDistance(target)
+	    +setRandomTarget()
+    }
+
+    class Coin {
+	    +number radius
+	    +boolean isDropped
+	    +boolean hasLanded
+	    +Vector velocity
+	    +drop()
+	    +checkLanded()
+    }
+
+    class Peg {
+	    +number radius
+	    +string color
+    }
+
+    class PowerUpSlot {
+	    +string powerUpType
+	    +string color
+	    +boolean isSelected
+	    +getPowerUpType()
+	    +highlight()
+    }
+
+    class StateMachine {
+    }
+
+    class Hitbox {
+    }
+
+    class `Matter.Body` {
+    }
+
+    class Vector {
+    }
+
+	<<abstract>> GameEntity
+	<<abstract>> Cat
+
+	note for GameEntity "Game Entity is the based class that will be extend with cat "
+	note for Cat "With cat this will extend to opponent and player"
+
+    GameEntity <|-- Cat : extends
+    Cat <|-- PlayerCat : extends
+    Cat <|-- CPUCat : extends
+    GameObject <|-- Coin : extends
+    GameObject <|-- Peg : extends
+    GameObject <|-- PowerUpSlot : extends
+    PlayerCat *-- "1" StateMachine : has own
+    CPUCat *-- "1" StateMachine : has own
+    Cat *-- "1" Hitbox : has attack hitbox
+    GameEntity *-- "1" Hitbox : has entity hitbox
+    GameObject *-- "1" Hitbox : has object hitbox
+    GameObject *-- "0..1" `Matter.Body` : optional physics
+    Coin *-- "1" `Matter.Body` : dynamic body
+    Peg *-- "1" `Matter.Body` : static body
+    PowerUpSlot *-- "1" `Matter.Body` : sensor body
+    Coin *-- "1" Vector : coin velocity
+    GameEntity *-- "1" Vector : vector for dimension & position

@@ -1,0 +1,89 @@
+---
+config:
+  layout: elk
+---
+stateDiagram
+  direction BT
+  state Play {
+    direction TB
+    state PlayerCat {
+      direction TB
+      [*] --> PIdleState
+      PIdleState --> PWalkingState:WASD pressed
+      PWalkingState --> PIdleState:No keys pressed
+      PIdleState --> PAttackingState:Attack key pressed
+      PWalkingState --> PAttackingState:Attack key pressed
+      PAttackingState --> PIdleState:Animation complete
+      PIdleState --> PDeadState:Health <= 0
+      PWalkingState --> PDeadState:Health <= 0
+      PAttackingState --> PDeadState:Health <= 0
+[*]      PIdleState
+      PWalkingState
+      PAttackingState
+      PDeadState
+    }
+    state CPUCats {
+      direction TB
+      [*] --> CIdleState
+      CIdleState --> CWalkingState:Random timer expires
+      CWalkingState --> CIdleState:Random chance OR wall hit
+      CIdleState --> CAttackingState:Player/Cat nearby
+      CWalkingState --> CAttackingState:Player/Cat nearby
+      CAttackingState --> CIdleState:Animation complete
+      CIdleState --> CDeadState:Health <= 0
+      CWalkingState --> CDeadState:Health <= 0
+      CAttackingState --> CDeadState:Health <= 0
+[*]      CIdleState
+      CWalkingState
+      CAttackingState
+      CDeadState
+    }
+  }
+  state Plinko {
+    direction TB
+    [*] --> DropCoin
+    DropCoin --> Bouncing:Coin released
+    Bouncing --> SelectPowerUp:Coin lands in slot
+    SelectPowerUp --> [*]
+[*]    DropCoin
+    Bouncing
+    SelectPowerUp
+[*]  }
+  [*] --> TitleScreen
+  TitleScreen --> Countdown:Player presses Start
+  Countdown --> Play:Countdown reaches 0
+  Play --> Plinko:Player triggers powerup
+  Play --> GameOver:Player cat dies
+  Play --> Victory:All CPU cats defeated
+  Plinko --> Play:Powerup applied resume game
+  GameOver --> TitleScreen:Restart
+  GameOver --> [*]:Quit
+  Victory --> TitleScreen:Play Again
+  Victory --> [*]:Quit
+  Play:PlayState
+  PIdleState:Idle State
+  PWalkingState:Walking State
+  PAttackingState:Attacking State
+  PDeadState:Dead State
+  CIdleState:Idle State
+  CWalkingState:Walking State
+  CAttackingState:Attacking State
+  CDeadState:Dead State
+  DropCoin:Drop Coin
+  Bouncing:Coin Bouncing
+  SelectPowerUp:PowerUp Selected
+  TitleScreen:Title Screen State
+  Countdown:Countdown State
+  GameOver:Game Over State
+  Victory:Victory State
+  note right of TitleScreen 
+  - Display cat battle royale logo
+        - Show "Press Start" button
+        - Wait for player input
+  end note
+  note right of Countdown 
+  - Show 3...2...1...GO!
+        - Spawn player cat (center)
+        - Spawn CPU cats random positions - All cats in Idle state
+        - Movement disabled
+  end note
