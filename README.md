@@ -30,7 +30,7 @@ If the player wins or looses they will be brought to a new state that will displ
 
 ## 📃 Requirements
 1. Import sprites
-2. 
+
 Game Start & Countdown:
 1. At the start of every match, a countdown timer must be displayed.
 2. When the countdown reaches zero: All players and NPCs must leave the starting platform.
@@ -100,7 +100,7 @@ Other:
 > [!note]
 > This is simply a mockup to show what we are envisioning. It's possible we may not use tileset for the plinko aspect of the game. 
 
-![Main Map](./assets/images/main-menu.png)
+![Main Map](./assets/images/main-map.png)
 Every cat starts on the platform, the purple ball is meant to display the object that the player can collide with to get a power up. 
 
 ![Game Board](./assets/images/plinko-cat.png)
