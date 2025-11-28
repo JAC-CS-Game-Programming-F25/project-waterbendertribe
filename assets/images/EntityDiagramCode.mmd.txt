@@ -122,14 +122,6 @@ direction TB
 	    +string color
     }
 
-    class PowerUpSlot {
-	    +string powerUpType
-	    +string color
-	    +boolean isSelected
-	    +getPowerUpType()
-	    +highlight()
-    }
-
     class StateMachine {
     }
 
@@ -142,11 +134,48 @@ direction TB
     class Vector {
     }
 
+    class PowerUp {
+	    +string type
+	    +number duration
+	    +number modifier
+	    +apply(cat)*
+	    +remove(cat)*
+    }
+
+    class AttackPowerUp {
+	    +apply(cat)
+	    +remove(cat)
+    }
+
+    class DefensePowerUp {
+	    +apply(cat)
+	    +remove(cat)
+    }
+
+    class SpeedPowerUp {
+	    +apply(cat)
+	    +remove(cat)
+    }
+
+    class PowerUpSlot {
+	    +string powerUpType
+	    +boolean isSelected
+	    +getPowerUpType()
+	    +highlight()
+    }
+
+    class PowerUpFactory {
+	    +createPowerUp(type, duration) PowerUp$
+    }
+
 	<<abstract>> GameEntity
 	<<abstract>> Cat
+	<<abstract>> PowerUp
+	<<factory>> PowerUpFactory
 
 	note for GameEntity "Game Entity is the based class that will be extend with cat "
 	note for Cat "With cat this will extend to opponent and player"
+	note for PowerUpFactory "This will be created in the PlinkoState"
 
     GameEntity <|-- Cat : extends
     Cat <|-- PlayerCat : extends
@@ -165,3 +194,11 @@ direction TB
     PowerUpSlot *-- "1" `Matter.Body` : sensor body
     Coin *-- "1" Vector : coin velocity
     GameEntity *-- "1" Vector : vector for dimension & position
+    PowerUp <|-- AttackPowerUp : extends
+    PowerUp <|-- DefensePowerUp : extends
+    PowerUp <|-- SpeedPowerUp : extends
+    PowerUpFactory ..> PowerUp : creates
+    PowerUpFactory ..> AttackPowerUp : creates
+    PowerUpFactory ..> DefensePowerUp : creates
+    PowerUpFactory ..> SpeedPowerUp : create
+	plink
