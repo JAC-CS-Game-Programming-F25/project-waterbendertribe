@@ -5,16 +5,10 @@ import {
 	matter,
 	world
 } from "../globals.js";
-
-const {
-	Bodies,
-	Composite,
-} = matter;
-
 export default class GameObject{
-     
-    constructor(matterBody){
-        this.body = 
+    const 
+    constructor(dimension, position){
+        
 
     }
 }
