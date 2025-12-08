@@ -42,21 +42,6 @@ export default class Layer {
 		return this.tiles[x + y * this.width];
 	}
 
-	/**
-	 * The Player can encounter wild Pokemon if they walk
-	 * in the grass. As such, we have to have a way of
-	 * checking if the current tile the player is standing
-	 * on is a grass tile or not. This can later be updated
-	 * as needed since encounters can occur in places like
-	 * caves and in water as well.
-	 *
-	 * @param {number} x
-	 * @param {number} y
-	 * @returns Whenter the current tile is a grass tile or not.
-	 */
-	isTileGrass(x, y) {
-		return this.getTile(x, y).id === Tile.GRASS;
-	}
 
 	/**
 	 * @param {object} layerData The exported layer data from Tiled.
