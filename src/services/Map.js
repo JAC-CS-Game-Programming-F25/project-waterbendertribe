@@ -10,6 +10,8 @@ import {
   DEBUG,
   images,
 } from "../globals.js";
+import Vector from "../../lib/Vector.js";
+import Player from "../entities/player/Player.js";
 
 export default class Map {
   constructor(mapDefinition) {
@@ -28,15 +30,17 @@ export default class Map {
       sprites
     );
     this.topLayer = new Layer(mapDefinition.layers[Layer.TOP], sprites);
+    this.player = new Player({ position: new Vector(0, 0) }, this);
   }
 
   update(dt) {
-    // Map update logic (no player yet)
+    this.player.update(dt);
   }
 
   render(context) {
     this.bottomLayer.render();
     this.collisionLayer.render();
+    this.player.render();
     this.topLayer.render();
 
     if (DEBUG) {

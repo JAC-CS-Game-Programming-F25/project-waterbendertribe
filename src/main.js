@@ -38,7 +38,7 @@ document.body.appendChild(canvas);
 const {
   images: imageDefinitions,
   // fonts: fontDefinitions,
-  // sounds: soundDefinitions,
+  sounds: soundDefinitions,
 } = await fetch("../config/config.json").then((response) => response.json());
 
 // Load map data
@@ -49,7 +49,7 @@ const mapDefinition = await fetch("../config/map.json").then((response) =>
 // Load all the assets from their definitions.
 images.load(imageDefinitions);
 // fonts.load(fontDefinitions);
-// sounds.load(soundDefinitions);
+sounds.load(soundDefinitions);
 
 // Add all the states to the state machine.
 stateMachine.add(GameStateName.TitleScreen, new TitleScreenState());

@@ -7,12 +7,24 @@
       "height": 16064
     },
     {
-      "name": "red",
-      "path": "./assets/images/red.png",
+      "name": "black_cat_running",
+      "path": "./assets/images/black_cat_running.png",
       "width": 128,
-      "height": 192
+      "height": 256
+    },
+    {
+      "name": "black_cat_walking",
+      "path": "./assets/images/black_cat_walking.png",
+      "width": 128,
+      "height": 128
     }
   ],
-  "fonts": [],
-  "sounds": []
+  "sounds": [
+    {
+      "name": "player-bump",
+      "path": "./assets/sounds/effects/player-bump.ogg",
+      "size": 1,
+      "volume": 0.2
+    }
+  ]
 }

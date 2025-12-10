@@ -42,4 +42,4 @@ export const sounds = new Sounds();
 
 //export const world = engine.world;
 
-export const DEBUG = false;
+export const DEBUG = true;
