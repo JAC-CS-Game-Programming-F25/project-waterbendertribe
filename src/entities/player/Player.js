@@ -14,13 +14,8 @@ export default class Player extends GameEntity {
   static CAT_WALKING_HEIGHT = 32;
   static CAT_RUNNING_HEIGHT = 32;
   static CAT_RUNNING_WIDTH = 32;
-  /**
-   * The character that the player controls in the map.
-   * Has a party of Pokemon they can use to battle other Pokemon.
-   *
-   * @param {object} entityDefinition
-   * @param {Map} map
-   */
+  static SCALE = 1.7; // Make the cat a little bigger
+
   constructor(entityDefinition = {}, map) {
     super(entityDefinition);
 
@@ -37,9 +32,9 @@ export default class Player extends GameEntity {
 
     this.map = map;
     this.dimensions = new Vector(GameEntity.WIDTH, GameEntity.HEIGHT);
-    this.isRunning = false; // Toggle for running mode
+    this.isRunning = false; // Running bool
     this.stateMachine = this.initializeStateMachine();
-    this.sprites = this.walkingSprites; // Start with walking sprites
+    this.sprites = this.walkingSprites;
     this.currentAnimation =
       this.stateMachine.currentState.animation[this.direction];
   }
@@ -47,13 +42,11 @@ export default class Player extends GameEntity {
   update(dt) {
     super.update(dt);
     this.currentAnimation.update(dt);
-
     this.currentFrame = this.currentAnimation.getCurrentFrame();
   }
 
   render() {
     const x = Math.floor(this.canvasPosition.x);
-
     /**
      * Offset the Y coordinate to provide a more "accurate" visual.
      * To see the difference, remove the offset and bump into something
@@ -61,7 +54,13 @@ export default class Player extends GameEntity {
      */
     const y = Math.floor(this.canvasPosition.y - this.dimensions.y / 2);
 
-    super.render(x, y);
+    const cameraScale = this.map.camera.scale;
+    const effectiveScale = Player.SCALE / cameraScale;
+    context.save();
+    context.translate(x, y);
+    context.scale(effectiveScale, effectiveScale);
+    this.sprites[this.currentFrame].render(0, 0);
+    context.restore();
 
     // DEBUG: Draw hitbox
     if (DEBUG) {
@@ -72,13 +71,10 @@ export default class Player extends GameEntity {
 
   initializeStateMachine() {
     const stateMachine = new StateMachine();
-
     stateMachine.add(CatStateName.Walking, new PlayerWalkingState(this));
     stateMachine.add(CatStateName.Running, new PlayerRunningState(this));
     stateMachine.add(CatStateName.Idling, new PlayerIdlingState(this));
-
     stateMachine.change(CatStateName.Idling);
-
     return stateMachine;
   }
 }
