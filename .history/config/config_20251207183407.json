@@ -1,0 +1,18 @@
+{
+  "images": [
+    {
+      "name": "tiles",
+      "path": "./assets/images/tiles.png",
+      "width": 256,
+      "height": 16064
+    },
+    {
+      "name": "red",
+      "path": "./assets/images/red.png",
+      "width": 128,
+      "height": 192
+    }
+  ],
+  "fonts": [],
+  "sounds": []
+}

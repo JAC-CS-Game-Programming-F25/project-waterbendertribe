@@ -1,0 +1,30 @@
+{
+  "images": [
+    {
+      "name": "tiles",
+      "path": "./assets/images/tiles.png",
+      "width": 256,
+      "height": 16064
+    },
+    {
+      "name": "black_cat_running",
+      "path": "./assets/images/black_cat_running.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "black_cat_walking",
+      "path": "./assets/images/black_cat_walking.png",
+      "width": 128,
+      "height": 128
+    }
+  ],
+  "sounds": [
+    {
+      "name": "player-bump",
+      "path": "./assets/sounds/effects/player-bump.ogg",
+      "size": 1,
+      "volume": 0.2
+    }
+  ]
+}
