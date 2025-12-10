@@ -1,16 +1,11 @@
 import GameEntity from './GameEntity.js';
 import { context, DEBUG, images, sounds, timer } from '../globals.js';
 import StateMachine from '../../lib/StateMachine.js';
-import PlayerWalkingState from '../states/entity/player/PlayerWalkingState.js';
-import PlayerSwordSwingingState from '../states/entity/player/PlayerSwordSwingingState.js';
-import PlayerIdlingState from '../states/entity/player/PlayerIdlingState.js';
 import PlayerStateName from '../enums/PlayerStateName.js';
 import Hitbox from '../../lib/Hitbox.js';
 import ImageName from '../enums/ImageName.js';
 import Sprite from '../../lib/Sprite.js';
-import Room from '../objects/Room.js';
 import Direction from '../enums/Direction.js';
-import SoundName from '../enums/SoundName.js';
 import PlayerRunningState from '../states/player/PlayerRunningState.js';
 
 export default class Player extends GameEntity {
