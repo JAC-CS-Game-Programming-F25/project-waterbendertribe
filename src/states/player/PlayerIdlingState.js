@@ -1,77 +1,54 @@
-import Animation from '../../../../lib/Animation.js';
-import State from '../../../../lib/State.js';
-import Player from '../../../entities/Player.js';
-import Direction from '../../../enums/Direction.js';
-import PlayerStateName from '../../../enums/PlayerStateName.js';
-import { input } from '../../../globals.js';
-import Input from '../../../../lib/Input.js';
+import Animation from "../../../lib/Animation.js";
+import State from "../../../lib/State.js";
+import Direction from "../../enums/Direction.js";
+import CatStateName from "../../enums/CatStateName.js";
+import { input } from "../../globals.js";
+import Input from "../../../lib/Input.js";
 
 export default class PlayerIdlingState extends State {
-	/**
-	 * In this state, the player is stationary unless
-	 * a directional key or the spacebar is pressed.
-	 *
-	 * @param {Player} player
-	 */
-	constructor(player) {
-		super();
+  constructor(player) {
+    super();
 
-		this.player = player;
+    this.player = player;
+    this.animation = {
+      [Direction.Up]: new Animation([0], 1),
+      [Direction.Down]: new Animation([8], 1),
+      [Direction.Left]: new Animation([12], 1),
+      [Direction.Right]: new Animation([4], 1),
+    };
+  }
 
-		this.animation = {
-			[Direction.Up]: new Animation([8], 1),
-			[Direction.Down]: new Animation([0], 1),
-			[Direction.Left]: new Animation([12], 1),
-			[Direction.Right]: new Animation([4], 1),
-		};
+  enter() {
+    this.player.currentAnimation = this.animation[this.player.direction];
+  }
 
-	}
+  update() {
+    if (input.isKeyPressed("SHIFT")) {
+      this.player.isRunning = !this.player.isRunning;
+    }
 
-	enter() {
-		this.player.sprites = this.player.walkingSprites;
-		this.player.currentAnimation = this.animation[this.player.direction];
-	}
+    const isMoving =
+      input.isKeyHeld(Input.KEYS.S) ||
+      input.isKeyHeld(Input.KEYS.D) ||
+      input.isKeyHeld(Input.KEYS.W) ||
+      input.isKeyHeld(Input.KEYS.A);
 
-	update() {
-		this.checkForPlayerWantsToPickUpPot();
-		this.checkForMovement();
-		this.checkForSwordSwing();
-	}
+    if (isMoving) {
+      if (input.isKeyHeld(Input.KEYS.S)) {
+        this.player.direction = Direction.Down;
+      } else if (input.isKeyHeld(Input.KEYS.D)) {
+        this.player.direction = Direction.Right;
+      } else if (input.isKeyHeld(Input.KEYS.W)) {
+        this.player.direction = Direction.Up;
+      } else if (input.isKeyHeld(Input.KEYS.A)) {
+        this.player.direction = Direction.Left;
+      }
 
-	checkForMovement() {
-		if (input.isKeyPressed(Input.KEYS.S)) {
-			this.player.direction = Direction.Down;
-			this.player.changeState(PlayerStateName.Walking);
-		} else if (input.isKeyPressed(Input.KEYS.D)) {
-			this.player.direction = Direction.Right;
-			this.player.changeState(PlayerStateName.Walking);
-		} else if (input.isKeyPressed(Input.KEYS.W)) {
-			this.player.direction = Direction.Up;
-			this.player.changeState(PlayerStateName.Walking);
-		} else if (input.isKeyPressed(Input.KEYS.A)) {
-			this.player.direction = Direction.Left;
-			this.player.changeState(PlayerStateName.Walking);
-		}
-	}
-
-	checkForSwordSwing() {
-		if (input.isKeyPressed(Input.KEYS.SPACE)) {
-			this.player.changeState(PlayerStateName.SwordSwinging);
-		}
-	}
-
-	checkForPlayerWantsToPickUpPot(){
-		 
-		if (input.isKeyPressed(Input.KEYS.ENTER)) {
-			
-			//if there's a pot in front of the player
-			const pot = this.player.canPickUpPot(this.player.room.objects);
-			if (pot) {
-
-				this.player.changeState(PlayerStateName.Lifting, { pot: pot });
-				return;
-			}
-		}
-
-	}
+      if (this.player.isRunning) {
+        this.player.changeState(CatStateName.Running);
+      } else {
+        this.player.changeState(CatStateName.Walking);
+      }
+    }
+  }
 }

@@ -6,9 +6,9 @@ const ImageName = {
   
   Player: "player",
   Title: "title",
-  CatWalk: "cat_walk",
-  CatRunning: "cat_running",
-  CatAttack: "cat_attack",
+  CatWalk: "orange_cat_walking",
+  CatRunning: "orange_cat_running",
+  //CatAttack: "cat_attack",
 };
 
 export default ImageName;

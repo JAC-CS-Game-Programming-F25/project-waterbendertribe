@@ -14,8 +14,7 @@ export default class PlayState extends State {
 	//this.player.update(dt);
   }
 
-  render(context) {
-    this.map.render(context);
-	//this.player.render();
+  render() {
+    this.map.render();
   }
 }

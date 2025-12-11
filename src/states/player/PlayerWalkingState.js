@@ -7,30 +7,25 @@ import { input, sounds } from "../../globals.js";
 import Tile from "../../services/Tile.js";
 import SoundName from "../../enums/SoundName.js";
 
-export default class PlayerRunningState extends State {
-  static MOVE_SPEED = 200;
+export default class PlayerWalkingState extends State {
+  static MOVE_SPEED = 100; // pixels per second
 
   constructor(player) {
     super();
     this.player = player;
     this.bottomLayer = this.player.map.bottomLayer;
     this.collisionLayer = this.player.map.collisionLayer;
-
     this.animation = {
-      [Direction.Up]: new Animation([0, 1, 2, 3, 4, 5, 6, 7], 0.05),
-      [Direction.Down]: new Animation([16, 17, 18, 19, 20, 21, 22, 23], 0.05),
-      [Direction.Left]: new Animation([24, 25, 26, 27, 28, 29, 30, 31], 0.05),
-      [Direction.Right]: new Animation([8, 9, 10, 11, 12, 13, 14, 15], 0.05),
+      [Direction.Up]: new Animation([0, 1, 2, 3], 0.09),
+      [Direction.Down]: new Animation([8, 9, 10, 11], 0.09),
+      [Direction.Left]: new Animation([12, 13, 14, 15], 0.09),
+      [Direction.Right]: new Animation([4, 5, 6, 7], 0.09),
     };
   }
 
   enter() {
-    this.player.currentAnimation = this.animation[this.player.direction];
-    this.player.sprites = this.player.runningSprites;
-  }
-
-  exit() {
     this.player.sprites = this.player.walkingSprites;
+    this.player.currentAnimation = this.animation[this.player.direction];
   }
 
   update(dt) {
@@ -53,8 +48,8 @@ export default class PlayerRunningState extends State {
       return;
     }
 
-    if (!this.player.isRunning) {
-      this.player.changeState(CatStateName.Walking);
+    if (this.player.isRunning) {
+      this.player.changeState(CatStateName.Running);
       return;
     }
 
@@ -75,7 +70,7 @@ export default class PlayerRunningState extends State {
   }
 
   move(dt) {
-    const moveDelta = PlayerRunningState.MOVE_SPEED * dt;
+    const moveDelta = PlayerWalkingState.MOVE_SPEED * dt;
 
     let newCanvasX = this.player.canvasPosition.x;
     let newCanvasY = this.player.canvasPosition.y;
@@ -112,7 +107,7 @@ export default class PlayerRunningState extends State {
     const hitboxHeight = 12;
     const collisionYOffset = -20;
 
-    const insetAmount = 6;
+    const insetAmount = 10;
 
     const leftX = Math.floor(
       (canvasX + hitboxOffsetX + insetAmount) / Tile.SIZE

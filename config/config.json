@@ -23,9 +23,87 @@
       "path": "./assets/images/plinko/backg.png",
       "width": 480,
       "height": 352
+    },
+    {
+      "name": "black_cat_running",
+      "path": "./assets/images/ModifiedCatSprites/black_cat_running.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "black_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/black_cat_walking.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "name": "blue_cat_running",
+      "path": "./assets/images/ModifiedCatSprites/blue_cat_running.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "blue_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/blue_cat_walking.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "name": "hairless_cat_running",
+      "path": "./assets/images/ModifiedCatSprites/hairless_cat_running.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "hairless_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/hairless_cat_walking.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "name": "orange_cat_running",
+      "path": "./assets/images/ModifiedCatSprites/orange_cat_running.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "orange_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/orange_cat_walking.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "name": "purple_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/purple_cat_walking.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "purple_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/purple_cat_walking.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "name": "red_cat_running",
+      "path": "./assets/images/ModifiedCatSprites/red_cat_running.png",
+      "width": 128,
+      "height": 256
+    },
+    {
+      "name": "red_cat_walking",
+      "path": "./assets/images/ModifiedCatSprites/red_cat_walking.png",
+      "width": 128,
+      "height": 128
     }
 
   ],
-  "fonts": [],
-  "sounds": []
+  "sounds": [
+    {
+      "name": "player-bump",
+      "path": "./assets/sounds/effects/player-bump.ogg",
+      "size": 1,
+      "volume": 0.2
+    }
+  ]
 }
