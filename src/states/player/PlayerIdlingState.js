@@ -23,8 +23,16 @@ export default class PlayerIdlingState extends State {
   }
 
   update() {
-    if (input.isKeyPressed("SHIFT")) {
+    this.Action();
+  }
+
+  Action() {
+    if (input.isKeyPressed(Input.KEYS.SHIFT)) {
       this.player.isRunning = !this.player.isRunning;
+    }
+
+    if (input.isKeyPressed(Input.KEYS.SPACE)) {
+      this.player.changeState(CatStateName.Attacking);
     }
 
     const isMoving =
