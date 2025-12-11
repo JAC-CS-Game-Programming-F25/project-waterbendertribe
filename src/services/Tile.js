@@ -15,6 +15,10 @@ export default class Tile {
 	}
 
 	render(x, y) {
-		this.sprites[this.id].render(x * Tile.SIZE, y * Tile.SIZE);
+		const sprite = this.sprites[this.id];
+		if (!sprite) return;
+
+		sprite.render(x * Tile.SIZE, y * Tile.SIZE);
 	}
+
 }

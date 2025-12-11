@@ -22,12 +22,44 @@ export default class Map {
    * @param {object} mapDefinition JSON from Tiled map editor.
    */
   constructor(mapDefinition) {
-    const sprites = Sprite.generateSpritesFromSpriteSheet(
-      images.get(ImageName.Tiles),
-      Tile.SIZE,
-      Tile.SIZE
-    );
 
+    const sprites = [];
+    
+    // Load each tileset and place sprites at correct indices based on firstgid
+    mapDefinition.tilesets.forEach(tileset => {
+      const firstgid = tileset.firstgid;
+      let imageName;
+      
+      // Determine which image to use based on the tileset source
+      if (tileset.source.includes('backg.tsx')) {
+        imageName = ImageName.PlinkoBackground;
+      } else if (tileset.source.includes('items.tsx')) {
+        imageName = ImageName.Items;
+      } else if (tileset.source.includes('spritesheet (5).tsx')) {
+        imageName = ImageName.Wall;
+      }
+      
+      if (imageName) {
+        const image = images.get(imageName);
+        if (image) {
+          const tilesetSprites = Sprite.generateSpritesFromSpriteSheet(
+            image,
+            Tile.SIZE,
+            Tile.SIZE
+          );
+          
+          //place each sprite at the correct global ID
+          tilesetSprites.forEach((sprite, index) => {
+            sprites[firstgid + index] = sprite;
+          });
+          
+          console.log(`Loaded ${imageName}: ${tilesetSprites.length} sprites starting at gid ${firstgid}`);
+        } else {
+          console.warn(`Image ${imageName} not found`);
+        }
+      }
+    });
+    
     this.width = mapDefinition.width;
     this.height = mapDefinition.height;
 

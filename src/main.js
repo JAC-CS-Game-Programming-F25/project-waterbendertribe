@@ -42,7 +42,11 @@ const {
 } = await fetch("../config/config.json").then((response) => response.json());
 
 // Load map data
-const mapDefinition = await fetch("../config/map.json").then((response) =>
+// const mapDefinition = await fetch("../config/map.json").then((response) =>
+//   response.json()
+// );
+
+const mapDefinition = await fetch("../config/PlinkoMap.json").then((response) =>
   response.json()
 );
 
