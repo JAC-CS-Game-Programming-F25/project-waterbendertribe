@@ -1,7 +1,6 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
-import { input, setCanvasSize } from "../globals.js";
-//import Player from "../entities/Player.js";
+import { input, setCanvasSize, context } from "../globals.js";
 
 /**
  * currently allows to switch between maps this is temporary 
@@ -20,16 +19,18 @@ export default class PlayState extends State {
   switchMap(mapName) {
     if (mapName === "map" && this.currentMapName !== "map") {
 
+      context.setTransform(1, 0, 0, 1, 0, 0); //reset canvas transform before switching
+      setCanvasSize(1920, 960);
       this.map = new Map(this.mainMapDefinition);
       this.currentMapName = "map";
-      setCanvasSize(1920, 960); 
       console.log("Switched to Main Map");
 
     } else if (mapName === "PlinkoMap" && this.currentMapName !== "PlinkoMap") {
 
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      setCanvasSize(480, 352);
       this.map = new Map(this.plinkoMapDefinition);
       this.currentMapName = "PlinkoMap";
-      setCanvasSize(480, 352); 
       console.log("Switched to Plinko Map");
       
     }
@@ -49,21 +50,3 @@ export default class PlayState extends State {
     this.map.render();
   }
 }
-
-
-// export default class PlayState extends State {
-//   constructor(mapDefinition) {
-//     super();
-//     this.map = new Map(mapDefinition);
-// 	//this.player = new Player();
-//   }
-
-//   update(dt) {
-//     this.map.update(dt);
-// 	//this.player.update(dt);
-//   }
-
-//   render() {
-//     this.map.render();
-//   }
-// }

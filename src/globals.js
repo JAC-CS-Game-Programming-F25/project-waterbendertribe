@@ -9,21 +9,17 @@ export const canvas = document.createElement("canvas");
 export const context =
   canvas.getContext("2d") || new CanvasRenderingContext2D();
 
-// Replace these values according to how big you want your canvas.
 export let CANVAS_WIDTH = 1920;
 export let CANVAS_HEIGHT = 960;
-// export const CANVAS_WIDTH = 480;
-// export const CANVAS_HEIGHT = 352;
 
 const resizeCanvas = () => {
   const scaleX = window.innerWidth / CANVAS_WIDTH;
   const scaleY = window.innerHeight / CANVAS_HEIGHT;
-  const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
+  const scale = Math.min(scaleX, scaleY); 
 
   canvas.style.width = `${CANVAS_WIDTH * scale}px`;
   canvas.style.height = `${CANVAS_HEIGHT * scale}px`;
 };
-
 
 //update canvas dimensions based on current map
 export function setCanvasSize(width, height) {
@@ -31,13 +27,18 @@ export function setCanvasSize(width, height) {
   CANVAS_HEIGHT = height;
   canvas.width = width;
   canvas.height = height;
+  
+  context.setTransform(1, 0, 0, 1, 0, 0); //reset the context state when canvas size changes
+  context.imageSmoothingEnabled = false; //maintain pixel art quality
+  
   resizeCanvas();
 }
 
-// Listen for canvas resize events
 window.addEventListener("resize", resizeCanvas);
 
-resizeCanvas(); // Call once to scale initially
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
+resizeCanvas();
 
 export const keys = {};
 export const images = new Images(context);
@@ -46,12 +47,6 @@ export const stateMachine = new StateMachine();
 export const timer = new Timer();
 export const input = new Input(canvas);
 export const sounds = new Sounds();
-//export const matter = Matter;
-
-// export const engine = matter.Engine.create({
-//   enableSleeping: true,
-// });
-
-//export const world = engine.world;
 
 export const DEBUG = false;
+

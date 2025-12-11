@@ -59,9 +59,9 @@ sounds.load(soundDefinitions);
 stateMachine.add(GameStateName.TitleScreen, new TitleScreenState());
 stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
-
 //stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));
 stateMachine.add(GameStateName.Play, new PlayState(mainMapDefinition, plinkoMapDefinition));
+
 
 stateMachine.change(GameStateName.Play);
 
