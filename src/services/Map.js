@@ -268,7 +268,7 @@ export default class Map {
       this.height * Tile.SIZE
     );
 
-    // Store the PlayState reference
+    // Store PlayState reference (used to delegate map switching)
     this.playState = playState;
 
     this.balls = [];
@@ -357,10 +357,16 @@ export default class Map {
    */
   spawnRandomBalls(count) {
     for (let i = 0; i < count; i++) {
-      // Use world coordinates instead of canvas coordinates
+
       const randomX = Math.random() * (this.width * Tile.SIZE - 100) + 50;
       const randomY = Math.random() * (this.height * Tile.SIZE - 100) + 50;
       this.balls.push(new Ball(new Vector(randomX, randomY), this));
+    }
+  }
+
+  switchMap(mapName) {
+    if (this.playState.switchMap) {
+      this.playState.switchMap(mapName);
     }
   }
 

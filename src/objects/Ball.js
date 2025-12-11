@@ -15,6 +15,7 @@ export default class Ball extends GameObject {
 			position
 		);
 		
+		// Keep reference to the map so we can request switches without callbacks
 		this.map = map;
 
 		this.sprites = Sprite.generateSpritesFromSpriteSheet(
@@ -48,9 +49,9 @@ export default class Ball extends GameObject {
 		this.wasConsumed = true;
 		this.cleanUp = true;
 
-		//switch to plinko map
-		if (this.map && this.map.playState) {
-			this.map.playState.switchMap("PlinkoMap");
+		// switch to plinko map via the map instance
+		if (this.map.switchMap) {
+			this.map.switchMap("PlinkoMap");
 		}
 	}
 }
