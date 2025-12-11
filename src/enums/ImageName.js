@@ -1,9 +1,13 @@
 const ImageName = {
   Tiles: "tiles",
+  Items: "items",
+  Wall: "wall",
+  PlinkoBackground: "plinko_background",
+  
   Player: "player",
   Title: "title",
-  CatWalk: "black_cat_walking",
-  CatRunning: "black_cat_running",
+  CatWalk: "orange_cat_walking",
+  CatRunning: "orange_cat_running",
   //CatAttack: "cat_attack",
 };
 
