@@ -7,11 +7,24 @@
       "height": 16064
     },
     {
-      "name": "red",
-      "path": "./assets/images/red.png",
-      "width": 128,
-      "height": 192
+      "name": "items",
+      "path": "./assets/images/plinko/IconSet.png",
+      "width": 512,
+      "height": 640
+    },
+    {
+      "name": "wall",
+      "path": "./assets/images/plinko/spritesheet (5).png",
+      "width": 729,
+      "height": 196
+    },
+    {
+      "name": "plinko_background",
+      "path": "./assets/images/plinko/backg.png",
+      "width": 480,
+      "height": 352
     }
+
   ],
   "fonts": [],
   "sounds": []
