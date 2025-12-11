@@ -10,11 +10,10 @@ export const context =
   canvas.getContext("2d") || new CanvasRenderingContext2D();
 
 // Replace these values according to how big you want your canvas.
-// export const CANVAS_WIDTH = 1920;
-// export const CANVAS_HEIGHT = 960;
-
-export const CANVAS_WIDTH = 480;
-export const CANVAS_HEIGHT = 352;
+export let CANVAS_WIDTH = 1920;
+export let CANVAS_HEIGHT = 960;
+// export const CANVAS_WIDTH = 480;
+// export const CANVAS_HEIGHT = 352;
 
 const resizeCanvas = () => {
   const scaleX = window.innerWidth / CANVAS_WIDTH;
@@ -24,6 +23,16 @@ const resizeCanvas = () => {
   canvas.style.width = `${CANVAS_WIDTH * scale}px`;
   canvas.style.height = `${CANVAS_HEIGHT * scale}px`;
 };
+
+
+//update canvas dimensions based on current map
+export function setCanvasSize(width, height) {
+  CANVAS_WIDTH = width;
+  CANVAS_HEIGHT = height;
+  canvas.width = width;
+  canvas.height = height;
+  resizeCanvas();
+}
 
 // Listen for canvas resize events
 window.addEventListener("resize", resizeCanvas);
@@ -45,4 +54,4 @@ export const sounds = new Sounds();
 
 //export const world = engine.world;
 
-export const DEBUG = true;
+export const DEBUG = false;

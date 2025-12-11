@@ -41,12 +41,12 @@ const {
   sounds: soundDefinitions,
 } = await fetch("../config/config.json").then((response) => response.json());
 
-// Load map data
-// const mapDefinition = await fetch("../config/map.json").then((response) =>
-//   response.json()
-// );
+//Load map data
+const mainMapDefinition = await fetch("../config/map.json").then((response) =>
+  response.json()
+);
 
-const mapDefinition = await fetch("../config/PlinkoMap.json").then((response) =>
+const plinkoMapDefinition = await fetch("../config/PlinkoMap.json").then((response) =>
   response.json()
 );
 
@@ -59,7 +59,9 @@ sounds.load(soundDefinitions);
 stateMachine.add(GameStateName.TitleScreen, new TitleScreenState());
 stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
-stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));
+
+//stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));
+stateMachine.add(GameStateName.Play, new PlayState(mainMapDefinition, plinkoMapDefinition));
 
 stateMachine.change(GameStateName.Play);
 
