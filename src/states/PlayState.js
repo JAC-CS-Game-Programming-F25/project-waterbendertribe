@@ -11,7 +11,9 @@ export default class PlayState extends State {
     this.mainMapDefinition = mainMapDefinition;
     this.plinkoMapDefinition = plinkoMapDefinition;
     
-    this.map = new Map(mainMapDefinition);
+    const onBallConsumed = () => this.switchMap("PlinkoMap");
+    
+    this.map = new Map(mainMapDefinition, onBallConsumed);
     this.currentMapName = "map";
   }
 
@@ -21,7 +23,8 @@ export default class PlayState extends State {
 
       context.setTransform(1, 0, 0, 1, 0, 0); //reset canvas transform before switching
       setCanvasSize(1920, 960);
-      this.map = new Map(this.mainMapDefinition);
+      const onBallConsumed = () => this.switchMap("PlinkoMap");
+      this.map = new Map(this.mainMapDefinition, onBallConsumed);
       this.currentMapName = "map";
       console.log("Switched to Main Map");
 
@@ -29,10 +32,10 @@ export default class PlayState extends State {
 
       context.setTransform(1, 0, 0, 1, 0, 0);
       setCanvasSize(480, 352);
-      this.map = new Map(this.plinkoMapDefinition);
+      this.map = new Map(this.plinkoMapDefinition, null);
       this.currentMapName = "PlinkoMap";
       console.log("Switched to Plinko Map");
-      
+
     }
   }
 

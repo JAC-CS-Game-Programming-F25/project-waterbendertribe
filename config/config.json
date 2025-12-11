@@ -13,6 +13,12 @@
       "height": 640
     },
     {
+      "name": "ball",
+      "path": "./assets/images/plinko/Ball.png",
+      "width": 192,
+      "height": 32
+    },
+    {
       "name": "wall",
       "path": "./assets/images/plinko/spritesheet (5).png",
       "width": 729,

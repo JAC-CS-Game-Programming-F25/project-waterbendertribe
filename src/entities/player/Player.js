@@ -7,6 +7,7 @@ import ImageName from "../../enums/ImageName.js";
 import StateMachine from "../../../lib/StateMachine.js";
 import CatStateName from "../../enums/CatStateName.js";
 import Sprite from "../../../lib/Sprite.js";
+import Hitbox from "../../../lib/Hitbox.js";
 import { images, context, DEBUG } from "../../globals.js";
 
 export default class Player extends GameEntity {
@@ -33,6 +34,15 @@ export default class Player extends GameEntity {
     this.map = map;
     this.dimensions = new Vector(GameEntity.WIDTH, GameEntity.HEIGHT);
     this.isRunning = false; // Running bool
+    
+    // Initialize hitbox for collision detection
+    this.hitbox = new Hitbox(
+      this.canvasPosition.x,
+      this.canvasPosition.y,
+      this.dimensions.x,
+      this.dimensions.y
+    );
+    
     this.stateMachine = this.initializeStateMachine();
     this.sprites = this.walkingSprites;
     this.currentAnimation =
@@ -43,6 +53,14 @@ export default class Player extends GameEntity {
     super.update(dt);
     this.currentAnimation.update(dt);
     this.currentFrame = this.currentAnimation.getCurrentFrame();
+    
+    // Update hitbox position to match player position
+    this.hitbox.set(
+      this.canvasPosition.x,
+      this.canvasPosition.y,
+      this.dimensions.x,
+      this.dimensions.y
+    );
   }
 
   render() {

@@ -3,6 +3,8 @@ const ImageName = {
   Items: "items",
   Wall: "wall",
   PlinkoBackground: "plinko_background",
+
+  Ball: "ball",
   
   Player: "player",
   Title: "title",
