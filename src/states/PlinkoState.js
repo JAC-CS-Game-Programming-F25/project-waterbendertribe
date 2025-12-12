@@ -18,7 +18,7 @@ export default class PlinkoState extends State {
   }
 
   exit() {
-    // Remove all Matter bodies from the world before exiting this state
+    // Remove all Matter bodies from world
     Composite.allBodies(world).forEach((body) => Composite.remove(world, body));
   }
 

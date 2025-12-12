@@ -6,12 +6,10 @@ import GameMatter from "./GameMatter.js";
 
 export default class PlinkoPeg extends Circle {
   static SPRITE_MEASUREMENTS = [{ x: 32, y: 0, width: 32, height: 32 }];
-  static RADIUS = 10; // Full pig body size for collision
+  static RADIUS = 10;
 
   /**
-   * A peg that balls bounce off of in the Plinko board.
-   * Collision now uses the full pig body size - hit anywhere on the pig!
-   *
+   * this is peg
    * @param {number} x
    * @param {number} y
    */

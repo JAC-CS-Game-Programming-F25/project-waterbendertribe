@@ -1,5 +1,4 @@
 import PlinkoBoard from "../services/PlinkoMap.js";
-//import PlinkoBackground from "./PlinkoBackground.js";
 import PlinkoBall from "./plinkoball.js";
 import {
   context,
@@ -13,30 +12,61 @@ import {
 } from "../globals.js";
 import GameStateName from "../enums/GameStateName.js";
 
+const { Body, Composite, Sleeping } = matter;
+
 export default class PlinkoLevel {
-  /**
-   * The PlinkoLevel contains all the pieces to play Plinko.
-   * Like Level.js in Angry Birds - contains Background, Board, and manages game pieces.
-   */
   constructor() {
-    //this.background = new PlinkoBackground();
     this.board = new PlinkoBoard();
     this.balls = [];
     this.score = 0;
     this.canDropBall = true;
+
+    const spawnPos = this.board.getSpawnPosition();
+    this.spawnY = Math.max(spawnPos.y - 8, 20);
+
+    // Start in the middle
+    this.readyBallX = CANVAS_WIDTH / 2;
+
+    this.readyBall = null;
+    this.initializeReadyBall();
+  }
+
+  initializeReadyBall() {
+    const spawnX = this.readyBallX;
+    const spawnY = this.spawnY;
+
+    this.readyBall = new PlinkoBall(spawnX, spawnY);
+    this.readyBall.isReady = true;
+
+    // Make static and clean
+    Body.setStatic(this.readyBall.body, true);
+    Body.setVelocity(this.readyBall.body, { x: 0, y: 0 });
+    Body.setAngularVelocity(this.readyBall.body, 0);
+    Sleeping.set(this.readyBall.body, false);
   }
 
   update(dt) {
     this.board.update(dt);
 
-    // Update all balls
+    // Move ready ball horizontally (only if it is ready)
+    if (this.readyBall?.isReady) {
+      this.handleBallPositioning(dt);
+    }
+
+    // Update dropped balls
     this.balls.forEach((ball) => ball.update(dt));
 
-    // Clean up balls
+    //Clean up balls that fell off screen
     this.balls = this.balls.filter((ball) => !ball.shouldCleanUp);
 
-    // Handle input
-    if (input.isKeyPressed("Space") || input.isKeyPressed("Enter")) {
+    // if no ball and no ready ball then spawn a new one
+    if (this.balls.length === 0 && !this.readyBall) {
+      this.canDropBall = true;
+      this.initializeReadyBall();
+    }
+
+    // Drop with Enter
+    if (input.isKeyPressed("Enter") && this.readyBall && this.canDropBall) {
       this.dropBall();
     }
 
@@ -45,94 +75,70 @@ export default class PlinkoLevel {
     }
   }
 
+  /**
+   * movee the ready ball left/right.
+   */
+  handleBallPositioning(dt) {
+    if (!this.readyBall?.isReady) return;
+
+    const moveSpeed = 300;
+    const minX = 30;
+    const maxX = CANVAS_WIDTH - 30;
+
+    if (input.isKeyPressed("a") || input.isKeyPressed("A")) {
+      this.readyBallX -= moveSpeed * dt;
+    }
+
+    if (input.isKeyPressed("d") || input.isKeyPressed("D")) {
+      this.readyBallX += moveSpeed * dt;
+    }
+
+    this.readyBallX = Math.max(minX, Math.min(this.readyBallX, maxX));
+
+    Body.setPosition(this.readyBall.body, {
+      x: this.readyBallX,
+      y: this.spawnY,
+    });
+
+    Body.setVelocity(this.readyBall.body, { x: 0, y: 0 });
+    Body.setAngularVelocity(this.readyBall.body, 0);
+    Sleeping.set(this.readyBall.body, false);
+  }
+
   render() {
-    //this.background.render();
-    this.renderStatistics();
     this.board.render();
 
-    // Render balls
-    this.balls.forEach((ball) => ball.render());
-
-    this.renderControls();
-  }
-
-  renderStatistics() {
-    context.fillStyle = "white";
-    context.font = "bold 30px Arial";
-    context.textAlign = "left";
-    context.strokeStyle = "black";
-    context.lineWidth = 3;
-    context.strokeText(`Score: ${this.score}`, 20, 40);
-    context.fillText(`Score: ${this.score}`, 20, 40);
-
-    if (DEBUG) {
-      context.font = "20px Arial";
-      context.strokeText(`Balls: ${this.balls.length}`, 20, 70);
-      context.fillText(`Balls: ${this.balls.length}`, 20, 70);
-
-      context.strokeText(`Pegs: ${this.board.pegs.length}`, 20, 100);
-      context.fillText(`Pegs: ${this.board.pegs.length}`, 20, 100);
-
-      context.strokeText(
-        `Bodies: ${matter.Composite.allBodies(world).length}`,
-        20,
-        130
-      );
-      context.fillText(
-        `Bodies: ${matter.Composite.allBodies(world).length}`,
-        20,
-        130
-      );
+    if (this.readyBall) {
+      this.readyBall.render();
     }
-  }
 
-  renderControls() {
-    context.save();
-    context.fillStyle = "white";
-    context.font = "18px Arial";
-    context.textAlign = "center";
-    context.strokeStyle = "black";
-    context.lineWidth = 2;
-
-    const text = "Press SPACE to drop ball | ESC to exit";
-    context.strokeText(text, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 20);
-    context.fillText(text, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 20);
-
-    context.restore();
+    this.balls.forEach((ball) => ball.render());
   }
 
   /**
-   * Drop a new ball from spawn position
+   * this Drops the ready ball.
    */
   dropBall() {
-    if (!this.canDropBall) return;
+    if (!this.canDropBall || !this.readyBall) return;
 
-    const spawnPos = this.board.getSpawnPosition();
-    const randomX = spawnPos.x + (Math.random() - 0.5) * 20;
-    const ball = new PlinkoBall(randomX, spawnPos.y);
+    Body.setPosition(this.readyBall.body, {
+      x: this.readyBallX,
+      y: this.spawnY,
+    });
 
-    // Store reference so board can call back
-    ball.level = this;
+    Body.setStatic(this.readyBall.body, false);
+    Sleeping.set(this.readyBall.body, false);
 
-    this.balls.push(ball);
+    const randomVelocity = (Math.random() - 0.5) * 2;
+    Body.setVelocity(this.readyBall.body, { x: randomVelocity, y: 0 });
 
-    // Cooldown
+    this.readyBall.isReady = false;
+    this.readyBall.level = this;
+
+    this.balls.push(this.readyBall);
+    this.readyBall = null;
+
+    // cannot drop again until the ball is gone
     this.canDropBall = false;
-    setTimeout(() => {
-      this.canDropBall = true;
-    }, 500);
-  }
-
-  /**
-   * Called by PlinkoBoard when ball hits multiplier
-   */
-  addScore(multiplier, powerUpType) {
-    const points = Math.round(100 * multiplier);
-    this.score += points;
-
-    console.log(`+${points} points! Total: ${this.score}`);
-    if (powerUpType) {
-      console.log(`Collected ${powerUpType}!`);
-    }
   }
 }
