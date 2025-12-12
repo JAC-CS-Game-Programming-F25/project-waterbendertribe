@@ -1,232 +1,197 @@
-import Colour from "../enums/Colour.js";
-import Sprite from "../../lib/Sprite.js";
-import ImageName from "../enums/ImageName.js";
-import Tile from "./Tile.js";
-import Layer from "./Layer.js";
-import PowerUpType from "../enums/PowerUpType.js";
+import PlinkoPeg from "../objects/plinkopeg.js";
+//import PlinkoMultiplier from "../entities/plinkomultiplier.js";
+import EventName from "../enums/EventName.js";
+import BodyType from "../enums/BodyType.js";
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  context,
-  DEBUG,
-  images,
   engine,
   matter,
   world,
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  context,
 } from "../globals.js";
-import Vector from "../../lib/Vector.js";
-import PlinkoSquishyCat from "../objects/PlinkoSquishyCat.js";
-import PowerUp from "../objects/PowerUps/PowerUp.js";
 
 const { Bodies, Composite, Events } = matter;
 
-export default class PlinkoMap {
-  constructor(mapDefinition, playState = null) {
-    this.width = mapDefinition.width;
-    this.height = mapDefinition.height;
-    this.playState = playState;
-
-    const sprites = this.loadTilesets(mapDefinition);
-
-    this.bottomLayer = new Layer(mapDefinition.layers[Layer.BOTTOM], sprites);
-    this.collisionLayer = new Layer(mapDefinition.layers[Layer.COLLISION],sprites);
-    this.topLayer = new Layer(mapDefinition.layers[Layer.TOP], sprites);
-
-    this.collisionData = mapDefinition.layers[Layer.COLLISION]?.data || [];
-
-    this.squishyCat = null;
-    this.obstacles = [];
-    this.powerUps = [];
-
-    this.squishyCat = new PlinkoSquishyCat(this);
-    this.createObstaclesFromCollisionLayer();
-    this.spawnPowerUps();
-    this.setupCollisionHandling();
-  }
+export default class PlinkoBoard {
+  static GRID_SIZE = 32;
 
   /**
-   * Spawn power-ups at the bottom of the plinko map
+   * The PlinkoBoard manages pegs and multipliers.
+   * Like Fortress.js in Angry Birds - manages game entities and collisions.
    */
-  spawnPowerUps() {
-    const bottomY = (this.height - 1) * Tile.SIZE;
-    const powerUpTypes = [
-      PowerUpType.AttackIncrease,
-      PowerUpType.SpeedPowerUp,
-      PowerUpType.DefencePowerUp
-    ];
-    
-    const spacing = (this.width * Tile.SIZE) / 7;
-    
-    powerUpTypes.forEach((type, index) => {
-      const x = spacing * (index + 3) - PowerUp.WIDTH / 1;
-      const y = bottomY;
-      const powerUp = new PowerUp(new Vector(x, y), this);
-      powerUp.loadImageByType(type);
-      this.powerUps.push(powerUp);
-    });
-  }
+  constructor() {
+    this.gridCols = Math.ceil(CANVAS_WIDTH / PlinkoBoard.GRID_SIZE);
+    this.gridRows = Math.ceil(CANVAS_HEIGHT / PlinkoBoard.GRID_SIZE);
 
-  /**
-   * Setup Matter.js collision detection for squishy cat hitting power-ups GARBAGE, THIS IS TEMP 
-   */
-  setupCollisionHandling() {
-    Events.on(engine, 'collisionStart', (event) => {
-      const pairs = event.pairs;
-      
-      pairs.forEach(pair => {
-        const { bodyA, bodyB } = pair;
-        
-        if (this.isCatParticle(bodyA) && bodyB.label === 'powerup') {
-          const powerUp = bodyB.powerUpObject;
-          if (powerUp && !powerUp.wasConsumed) {
-            powerUp.onConsume(this.squishyCat);
-          }
-        } else if (this.isCatParticle(bodyB) && bodyA.label === 'powerup') {
-          const powerUp = bodyA.powerUpObject;
-          if (powerUp && !powerUp.wasConsumed) {
-            powerUp.onConsume(this.squishyCat);
-          }
-        }
-      });
-    });
-  }
+    this.pegs = [];
 
-  /**
-   * Check if a Matter body is part of the squishy cat
-   */
-  isCatParticle(body) {
-    return body.label === 'squishyCatParticle';
-  }
-
-  /**
-   * Load tilesets for plinko map
-   * @param {object} mapDefinition - The map definition from JSON
-   * @returns {Array} sprites array with all loaded sprites
-   */
-  loadTilesets(mapDefinition) {
-    const sprites = [];
-
-    if (mapDefinition.tilesets && mapDefinition.tilesets.length > 0) {
-      mapDefinition.tilesets.forEach((tileset) => {
-        const firstgid = tileset.firstgid;
-        let imageName;
-
-        if (tileset.source.includes("tileset.tsx")) {
-          imageName = ImageName.Tiles;
-        } else if (tileset.source.includes("backg.tsx")) {
-          imageName = ImageName.PlinkoBackground;
-        } else if (tileset.source.includes("items.tsx")) {
-          imageName = ImageName.Items;
-        } else if (tileset.source.includes("spritesheet (5).tsx")) {
-          imageName = ImageName.Wall;
-        }
-
-        if (imageName) {
-          const image = images.get(imageName);
-          if (image) {
-            const tilesetSprites = Sprite.generateSpritesFromSpriteSheet(
-              image,
-              Tile.SIZE,
-              Tile.SIZE
-            );
-            tilesetSprites.forEach((sprite, index) => {
-              sprites[firstgid + index] = sprite;
-            });
-          }
-        }
-      });
-    }
-
-    return sprites;
-  }
-
-  /**
-   * Create Matter physics bodies from collision layer tiles
-   */
-  createObstaclesFromCollisionLayer() {
-    if (!this.collisionData || this.collisionData.length === 0) {
-      return;
-    }
-
-    for (let i = 0; i < this.collisionData.length; i++) {
-      let tileId = this.collisionData[i];
-      tileId--;
-
-      if (tileId >= 0) {
-        const col = i % this.width;
-        const row = Math.floor(i / this.width);
-        const x = col * Tile.SIZE + Tile.SIZE / 2;
-        const y = row * Tile.SIZE + Tile.SIZE / 2;
-
-        const radius = Tile.SIZE / 2;
-        const obstacle = Bodies.circle(x, y, radius, {
-          isStatic: true,
-          restitution: 0.9,
-          friction: 0.1,
-          label: "obstacle",
-        });
-
-        Composite.add(world, obstacle);
-        this.obstacles.push(obstacle);
-      }
-    }
-  }
-
-  cleanUpEntities() {
-    this.powerUps = this.powerUps.filter(powerUp => !powerUp.cleanUp);
+    //this.createBorders();
+    this.createPegs();
+    this.registerCollisionEvents();
   }
 
   update(dt) {
-    matter.Engine.update(engine, dt * 1000);
-    
-    if (this.squishyCat) {
-      this.squishyCat.update(dt);
-    }
-    
-    // Update power-ups
-    this.powerUps.forEach(powerUp => powerUp.update(dt));
-    
-    this.cleanUpEntities();
+    this.pegs.forEach((peg) => peg.update(dt));
   }
 
   render() {
-    this.bottomLayer.render();
-    this.collisionLayer.render();
-    
-    // Render power-ups
-    this.powerUps.forEach(powerUp => powerUp.render());
-    
-    if (this.squishyCat) {
-      this.squishyCat.render(context);
-    }
-    
-    this.topLayer.render();
-
-    if (DEBUG) {
-      PlinkoMap.renderGrid();
-    }
+    this.renderGrid();
+    // Perhaps add decore for the bow
+    this.pegs.forEach((peg) => peg.render());
   }
 
-  static renderGrid() {
-    context.save();
-    context.strokeStyle = Colour.White;
+  /**
+   * Create boundry you know this is chat cuzzz
+   */
+  createBorders() {
+    const wallThickness = 10;
 
-    for (let y = 1; y < CANVAS_HEIGHT / Tile.SIZE; y++) {
-      context.beginPath();
-      context.moveTo(0, y * Tile.SIZE);
-      context.lineTo(CANVAS_WIDTH, y * Tile.SIZE);
-      context.closePath();
-      context.stroke();
+    const walls = [
+      Bodies.rectangle(
+        -wallThickness / 2,
+        CANVAS_HEIGHT / 2,
+        wallThickness,
+        CANVAS_HEIGHT,
+        {
+          isStatic: true,
+          label: "wall",
+          restitution: 0.8,
+        }
+      ),
+      Bodies.rectangle(
+        CANVAS_WIDTH + wallThickness / 2,
+        CANVAS_HEIGHT / 2,
+        wallThickness,
+        CANVAS_HEIGHT,
+        {
+          isStatic: true,
+          label: "wall",
+          restitution: 0.8,
+        }
+      ),
+      Bodies.rectangle(
+        CANVAS_WIDTH / 2,
+        CANVAS_HEIGHT + wallThickness / 2,
+        CANVAS_WIDTH,
+        wallThickness,
+        {
+          isStatic: true,
+          label: "wall",
+        }
+      ),
+    ];
 
-      for (let x = 1; x < CANVAS_WIDTH / Tile.SIZE; x++) {
-        context.beginPath();
-        context.moveTo(x * Tile.SIZE, 0);
-        context.lineTo(x * Tile.SIZE, CANVAS_HEIGHT);
-        context.closePath();
-        context.stroke();
+    Composite.add(world, walls);
+  }
+
+  /*
+   * This will craete the pegs, where you can configure the placement of the pegs
+   */
+  createPegs() {
+    const pegRows = [
+      { row: 0, cols: 7, offset: 0 },
+      { row: 2, cols: 7, offset: 1 },
+      { row: 4, cols: 7, offset: 0 },
+      { row: 6, cols: 7, offset: 1 },
+    ];
+
+    pegRows.forEach((config) => {
+      const spacing = (this.gridCols - 1) / (config.cols + 1);
+
+      for (let col = 0; col < config.cols; col++) {
+        const x =
+          PlinkoBoard.GRID_SIZE *
+          ((col + 1) * spacing + (config.offset * spacing) / 2);
+        const y = PlinkoBoard.GRID_SIZE * (config.row + 3);
+
+        const peg = new PlinkoPeg(x, y);
+        this.pegs.push(peg);
       }
+    });
+  }
+
+  /**
+   * Get the spanws balls
+   */
+  getSpawnPosition() {
+    return {
+      x: CANVAS_WIDTH / 2,
+      y: PlinkoBoard.GRID_SIZE * 1.5,
+    };
+  }
+
+  /**
+   * Render grid background
+   */
+  renderGrid() {
+    context.save();
+
+    // Background
+    context.fillStyle = "#DEB887";
+    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Grid lines
+    context.strokeStyle = "#8B7355";
+    context.setLineDash([4, 4]);
+    context.lineWidth = 1;
+
+    for (let col = 0; col <= this.gridCols; col++) {
+      const x = col * PlinkoBoard.GRID_SIZE;
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x, CANVAS_HEIGHT);
+      context.stroke();
     }
 
+    for (let row = 0; row <= this.gridRows; row++) {
+      const y = row * PlinkoBoard.GRID_SIZE;
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(CANVAS_WIDTH, y);
+      context.stroke();
+    }
+
+    context.setLineDash([]);
     context.restore();
+  }
+
+  /**
+   * Register collision events
+   */
+  registerCollisionEvents() {
+    Events.on(engine, EventName.CollisionStart, (event) => {
+      this.onCollisionStart(event);
+    });
+  }
+
+  /**
+   * Handle collision start
+   */
+  onCollisionStart(event) {
+    event.pairs.forEach((pair) => {
+      const { bodyA, bodyB } = pair;
+
+      // Ball hits peg
+      if (this.isBall(bodyA) && this.isPeg(bodyB)) {
+        this.handleBallPegCollision(bodyA, bodyB);
+      } else if (this.isBall(bodyB) && this.isPeg(bodyA)) {
+        this.handleBallPegCollision(bodyB, bodyA);
+      }
+    });
+  }
+
+  isBall(body) {
+    return body.label === BodyType.Bird;
+  }
+
+  isPeg(body) {
+    return body.label === BodyType.Pig;
+  }
+
+  handleBallPegCollision(ballBody, pegBody) {
+    if (pegBody.entity) {
+      pegBody.entity.flash();
+    }
   }
 }

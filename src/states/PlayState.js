@@ -1,10 +1,12 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
-import PlinkoMap from "../services/PlinkoMap.js";
+import PlinkoBoard from "../services/PlinkoMap.js";
 import { input, setCanvasSize, context } from "../globals.js";
+import PlinkoLevel from "../objects/PlinkoLevel.js";
+import PlinkoState from "./PlinkoState.js";
 
 /**
- * currently allows to switch between maps this is temporary 
+ * currently allows to switch between maps this is temporary
  */
 export default class PlayState extends State {
   constructor(mainMapDefinition, plinkoMapDefinition) {
@@ -19,30 +21,26 @@ export default class PlayState extends State {
   //switch to a different map temp
   switchMap(mapName) {
     if (mapName === "map" && this.currentMapName !== "map") {
-
       context.setTransform(1, 0, 0, 1, 0, 0); //reset canvas transform before switching
       setCanvasSize(1920, 960);
       this.map = new Map(this.mainMapDefinition, this);
       this.currentMapName = "map";
       console.log("Switched to Main Map");
-
     } else if (mapName === "PlinkoMap" && this.currentMapName !== "PlinkoMap") {
-
       context.setTransform(1, 0, 0, 1, 0, 0);
       setCanvasSize(480, 352);
-      this.map = new PlinkoMap(this.plinkoMapDefinition, this);
+      this.map = new PlinkoState();
       this.currentMapName = "PlinkoMap";
       console.log("Switched to Plinko Map");
-
     }
   }
 
   update(dt) {
     this.map.update(dt);
-    if (input.isKeyPressed('m')) {
+    if (input.isKeyPressed("m")) {
       this.switchMap("map");
     }
-    if (input.isKeyPressed('p')) {
+    if (input.isKeyPressed("p")) {
       this.switchMap("PlinkoMap");
     }
   }

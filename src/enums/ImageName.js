@@ -6,7 +6,9 @@ const ImageName = {
 
   Ball: "ball",
   PlinkoBall: "plinko_ball",
-  
+  CrystalBall: "crystal_ball_sheet",
+  Beam: "beam_sheet",
+
   AttackIncrease: "attack_increase",
   SpeedPowerUp: "speed",
   DefencePowerUp: "defence",
