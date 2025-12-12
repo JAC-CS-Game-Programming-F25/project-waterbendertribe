@@ -7,10 +7,53 @@
       "height": 16064
     },
     {
+      "name": "crystal_ball_sheet",
+      "path": "./assets/images/plinko/crystal_ball_sheet.png",
+      "width": 160,
+      "height": 32
+    },
+    {
+      "name": "beam_sheet",
+      "path": "./assets/images/plinko/beam_sheet.png",
+      "width": 48,
+      "height": 48
+    },
+
+    {
       "name": "items",
       "path": "./assets/images/plinko/IconSet.png",
       "width": 512,
       "height": 640
+    },
+    {
+      "name": "ball",
+      "path": "./assets/images/plinko/Ball.png",
+      "width": 33,
+      "height": 32
+    },
+    {
+      "name": "plinko_ball",
+      "path": "./assets/images/plinko/slimeCat.png",
+      "width": 128,
+      "height": 32
+    },
+    {
+      "name": "speed",
+      "path": "./assets/images/PowerUps/Shoes.png",
+      "width": 31,
+      "height": 25
+    },
+    {
+      "name": "attack_increase",
+      "path": "./assets/images/PowerUps/Sword.png",
+      "width": 34,
+      "height": 32
+    },
+    {
+      "name": "defence",
+      "path": "./assets/images/PowerUps/shield.png",
+      "width": 30,
+      "height": 32
     },
     {
       "name": "wall",

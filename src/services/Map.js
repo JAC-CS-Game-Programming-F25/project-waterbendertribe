@@ -1,3 +1,4 @@
+import Colour from "../enums/Colour.js";
 import Sprite from "../../lib/Sprite.js";
 import ImageName from "../enums/ImageName.js";
 import Tile from "./Tile.js";
@@ -9,21 +10,26 @@ import {
   context,
   DEBUG,
   images,
+  engine,
+  matter,
+  world,
 } from "../globals.js";
 import Vector from "../../lib/Vector.js";
 import Player from "../entities/player/Player.js";
 import EnemyFactory from "./EnemyFactory.js";
+import Ball from "../objects/Ball.js";
 
 export default class Map {
-  constructor(mapDefinition) {
+  constructor(mapDefinition, playState = null) {
+    this.width = mapDefinition.width;
+    this.height = mapDefinition.height;
+    this.playState = playState;
+
     const sprites = Sprite.generateSpritesFromSpriteSheet(
       images.get(ImageName.Tiles),
       Tile.SIZE,
       Tile.SIZE
     );
-
-    this.width = mapDefinition.width;
-    this.height = mapDefinition.height;
 
     this.bottomLayer = new Layer(mapDefinition.layers[Layer.BOTTOM], sprites);
     this.collisionLayer = new Layer(
@@ -34,14 +40,15 @@ export default class Map {
 
     // Create player
     this.player = new Player({ position: new Vector(20, 20) }, this);
-
     // Create camera
+    this.useCamera = this.width;
     this.camera = new Camera(
       this.player,
       this.width * Tile.SIZE,
       this.height * Tile.SIZE
     );
-
+    this.balls = [];
+    this.spawnRandomBalls(5);
     // Create enemies using factory
     this.enemies = this.createEnemies();
   }
@@ -80,7 +87,27 @@ export default class Map {
     return enemies;
   }
 
+  /**
+   * Spawn random balls on the map
+   * @param {number} count - Number of balls to spawn
+   */
+  spawnRandomBalls(count) {
+    for (let i = 0; i < count; i++) {
+      const randomX = Math.random() * (this.width * Tile.SIZE - 100) + 50;
+      const randomY = Math.random() * (this.height * Tile.SIZE - 100) + 50;
+      this.balls.push(new Ball(new Vector(randomX, randomY), this));
+    }
+  }
+
+  switchMap(mapName) {
+    if (this.playState && this.playState.switchMap) {
+      this.playState.switchMap(mapName);
+    }
+  }
+
   update(dt) {
+    matter.Engine.update(engine, dt * 1000);
+
     this.player.update(dt);
     this.camera.update(dt);
 
@@ -96,10 +123,30 @@ export default class Map {
         this.handleEnemyHit(enemy);
       }
     });
+    this.updateEntities(dt);
+    this.cleanUpEntities();
+  }
+
+  updateEntities(dt) {
+    this.balls.forEach((ball) => ball.update(dt));
+
+    this.balls.forEach((ball) => {
+      if (ball.isConsumable && !ball.wasConsumed && !ball.cleanUp) {
+        if (ball.hitbox.didCollide(this.player.hitbox)) {
+          ball.onConsume(this.player);
+        }
+      }
+    });
+  }
+
+  cleanUpEntities() {
+    this.balls = this.balls.filter((ball) => !ball.cleanUp);
   }
 
   render() {
-    this.camera.applyTransform(context);
+    if (this.useCamera) {
+      this.camera.applyTransform(context);
+    }
 
     // Render bottom layer
     this.bottomLayer.render();
@@ -111,17 +158,23 @@ export default class Map {
       enemy.render();
     });
 
-    // Render player
-    this.player.render();
+    this.balls.forEach((ball) => ball.render());
+    this.player.render(); // Render player
 
     // Render top layer (trees, etc. that appear above player)
     this.topLayer.render();
+
+    if (this.squishyCat) {
+      this.squishyCat.render(context);
+    }
 
     if (DEBUG) {
       Map.renderGrid();
     }
 
-    this.camera.resetTransform(context);
+    if (this.useCamera) {
+      this.camera.resetTransform(context);
+    }
   }
 
   /**

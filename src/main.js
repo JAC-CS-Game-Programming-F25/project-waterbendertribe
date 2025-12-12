@@ -46,8 +46,8 @@ const mainMapDefinition = await fetch("../config/map.json").then((response) =>
   response.json()
 );
 
-const plinkoMapDefinition = await fetch("../config/PlinkoMap.json").then((response) =>
-  response.json()
+const plinkoMapDefinition = await fetch("../config/PlinkoMap.json").then(
+  (response) => response.json()
 );
 
 // Load all the assets from their definitions.
@@ -59,9 +59,11 @@ sounds.load(soundDefinitions);
 stateMachine.add(GameStateName.TitleScreen, new TitleScreenState());
 stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
-
-//stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));
-stateMachine.add(GameStateName.Play, new PlayState(mainMapDefinition, plinkoMapDefinition));
+//stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));io
+stateMachine.add(
+  GameStateName.Play,
+  new PlayState(mainMapDefinition, plinkoMapDefinition)
+);
 
 stateMachine.change(GameStateName.Play);
 
