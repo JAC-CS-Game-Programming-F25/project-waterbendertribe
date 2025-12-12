@@ -1,14 +1,9 @@
-// import Sprite from "../../lib/Sprite.js";
- import Vector from "../../lib/Vector.js";
+import Vector from "../../lib/Vector.js";
 import GameObject from "./GameObject.js";
-// import { images } from "../globals.js";
-// import ImageName from "../enums/ImageName.js";
-import Hitbox from '../../lib/Hitbox.js';
-
 import Sprite from "../../lib/Sprite.js";
 import { images } from "../globals.js";
 import ImageName from "../enums/ImageName.js";
-import Circle from "./Circle.js";
+
 export default class Ball extends GameObject {
 	static WIDTH = 32;
 	static HEIGHT = 32;
@@ -27,8 +22,6 @@ export default class Ball extends GameObject {
 			Ball.HEIGHT
 		);
 
-		this.hitboxOffsets = new Hitbox(0, 0, 0, 0);	
-
 		this.currentFrame = 0;
 
 		this.isConsumable = true;
@@ -40,12 +33,15 @@ export default class Ball extends GameObject {
 	update(dt) {
 		super.update(dt);
 		
-		this.hitbox.set(
-			this.position.x,
-			this.position.y,
-			this.dimensions.x,
-			this.dimensions.y
-		);
+		// Update hitbox to match ball position
+		if (this.hitbox) {
+			this.hitbox.set(
+				this.position.x,
+				this.position.y,
+				this.dimensions.x,
+				this.dimensions.y
+			);
+		}
 	}
 
 	onConsume() {
@@ -53,7 +49,7 @@ export default class Ball extends GameObject {
 		this.cleanUp = true;
 
 		// switch to plinko map via the map instance
-		if (this.map.switchMap) {
+		if (this.map && this.map.switchMap) {
 			this.map.switchMap("PlinkoMap");
 		}
 	}

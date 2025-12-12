@@ -132,7 +132,8 @@ export default class Map {
 
     this.balls.forEach((ball) => {
       if (ball.isConsumable && !ball.wasConsumed && !ball.cleanUp) {
-        if (ball.hitbox.didCollide(this.player.hitbox)) {
+   
+        if (ball.hitbox && this.player.bodyHitbox && ball.hitbox.didCollide(this.player.bodyHitbox)) {
           ball.onConsume(this.player);
         }
       }
