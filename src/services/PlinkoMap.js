@@ -10,6 +10,7 @@ import {
   CANVAS_HEIGHT,
   context,
 } from "../globals.js";
+import Background from "../objects/Background.js";
 
 const { Bodies, Composite, Events } = matter;
 
@@ -24,9 +25,9 @@ export default class PlinkoBoard {
     this.gridCols = Math.ceil(CANVAS_WIDTH / PlinkoBoard.GRID_SIZE);
     this.gridRows = Math.ceil(CANVAS_HEIGHT / PlinkoBoard.GRID_SIZE);
 
-    this.pegs = [];
+    this.background = new Background();
 
-    //this.createBorders();
+    this.pegs = [];
     this.createPegs();
     this.registerCollisionEvents();
   }
@@ -36,7 +37,6 @@ export default class PlinkoBoard {
   }
 
   render() {
-    this.renderGrid();
     // Perhaps add decore for the bow
     this.pegs.forEach((peg) => peg.render());
   }
@@ -119,41 +119,6 @@ export default class PlinkoBoard {
       x: CANVAS_WIDTH / 2,
       y: PlinkoBoard.GRID_SIZE * 1.5,
     };
-  }
-
-  /**
-   * Render grid background
-   */
-  renderGrid() {
-    context.save();
-
-    // Background
-    context.fillStyle = "#DEB887";
-    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // Grid lines
-    context.strokeStyle = "#8B7355";
-    context.setLineDash([4, 4]);
-    context.lineWidth = 1;
-
-    for (let col = 0; col <= this.gridCols; col++) {
-      const x = col * PlinkoBoard.GRID_SIZE;
-      context.beginPath();
-      context.moveTo(x, 0);
-      context.lineTo(x, CANVAS_HEIGHT);
-      context.stroke();
-    }
-
-    for (let row = 0; row <= this.gridRows; row++) {
-      const y = row * PlinkoBoard.GRID_SIZE;
-      context.beginPath();
-      context.moveTo(0, y);
-      context.lineTo(CANVAS_WIDTH, y);
-      context.stroke();
-    }
-
-    context.setLineDash([]);
-    context.restore();
   }
 
   /**
