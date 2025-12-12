@@ -73,8 +73,8 @@
       "height": 128
     },
     {
-      "name": "purple_cat_walking",
-      "path": "./assets/images/ModifiedCatSprites/purple_cat_walking.png",
+      "name": "purple_cat_running",
+      "path": "./assets/images/ModifiedCatSprites/purple_cat_runnddaing.png",
       "width": 128,
       "height": 256
     },
@@ -96,7 +96,6 @@
       "width": 128,
       "height": 128
     }
-
   ],
   "sounds": [
     {

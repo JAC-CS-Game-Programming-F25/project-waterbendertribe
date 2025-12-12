@@ -2,7 +2,7 @@ import Vector from "../../lib/Vector.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals.js";
 
 /**
- *
+ * A simple camera that follows the player in a top-down 2D game.
  */
 export default class Camera {
   // Camera viewport size (how much of the world you see)
@@ -30,29 +30,44 @@ export default class Camera {
    * @param {number} dt - Delta time, the time passed since the last frame.
    */
   update(dt) {
-    // This grabs player position relative to the canvas
-    this.position.x = this.player.canvasPosition.x - this.viewportWidth / 2;
-    this.position.y = this.player.canvasPosition.y - this.viewportHeight / 2;
+    // Get player's actual sprite size (accounting for scale)
+    const playerScale = this.player.constructor.SCALE || 1;
+    const spriteWidth = 32 * playerScale; // e.g., 64 if scale is 2
+    const spriteHeight = 32 * playerScale; // e.g., 64 if scale is 2
 
-    this.position.x = Math.max(
-      0,
-      Math.min(this.worldWidth - this.viewportWidth, this.position.x)
-    );
-    this.position.y = Math.max(
-      0,
-      Math.min(this.worldHeight - this.viewportHeight, this.position.y)
-    );
+    // Center of player sprite in world coordinates
+    const playerCenterX = this.player.canvasPosition.x + spriteWidth / 2;
+    const playerCenterY = this.player.canvasPosition.y + spriteHeight / 2;
 
-    this.position.x = Math.round(this.position.x);
-    this.position.y = Math.round(this.position.y);
+    // Position camera so player center is at viewport center
+    let targetX = playerCenterX - this.viewportWidth / 2;
+    let targetY = playerCenterY - this.viewportHeight / 2;
+
+    // Clamp to world boundaries
+    const maxX = this.worldWidth - this.viewportWidth;
+    const maxY = this.worldHeight - this.viewportHeight;
+
+    if (maxX > 0) {
+      targetX = Math.max(0, Math.min(maxX, targetX));
+    } else {
+      // World smaller than viewport - center the world
+      targetX = maxX / 2;
+    }
+
+    if (maxY > 0) {
+      targetY = Math.max(0, Math.min(maxY, targetY));
+    } else {
+      // World smaller than viewport - center the world
+      targetY = maxY / 2;
+    }
+
+    this.position.x = Math.round(targetX);
+    this.position.y = Math.round(targetY);
   }
 
   applyTransform(context) {
     context.save();
-
-    // Scale to fit viewport to canvas
     context.scale(this.scale, this.scale);
-
     context.translate(-this.position.x, -this.position.y);
   }
 

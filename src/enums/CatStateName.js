@@ -1,8 +1,8 @@
 const CatStateName = {
-  Idle: "idle",
+  Idling: "idling",
   Walking: "walking",
   Running: "running",
-  Attack: "attack",
+  Attacking: "attacking",
 };
 
 export default CatStateName;

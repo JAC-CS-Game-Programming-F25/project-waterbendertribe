@@ -1,8 +1,7 @@
 const EnemyStateName = {
-	Idle: 'idle',
-	Moving: 'moving',
-	Attack: 'attack',
-
+  Idling: "idling",
+  Walking: "walking",
+  Chasing: "chasing",
 };
 
 export default EnemyStateName;

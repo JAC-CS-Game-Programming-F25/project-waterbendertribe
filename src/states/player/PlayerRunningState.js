@@ -39,8 +39,12 @@ export default class PlayerRunningState extends State {
   }
 
   handleMovement(dt) {
-    if (input.isKeyPressed("SHIFT")) {
+    if (input.isKeyPressed(Input.KEYS.SHIFT)) {
       this.player.isRunning = !this.player.isRunning;
+    }
+
+    if (input.isKeyPressed(Input.KEYS.SPACE)) {
+      this.player.changeState(CatStateName.Attacking);
     }
 
     if (
@@ -106,26 +110,26 @@ export default class PlayerRunningState extends State {
   }
 
   isValidMove(canvasX, canvasY) {
-    const hitboxOffsetX = 6;
-    const hitboxOffsetY = 20;
-    const hitboxWidth = 20;
-    const hitboxHeight = 12;
-    const collisionYOffset = -20;
+    // Calculate where the body hitbox would be at the new position
+    const offsetX = this.player.bodyHitboxOffsets.x;
+    const offsetY = this.player.bodyHitboxOffsets.y;
+    const hitboxWidth = this.player.bodyHitbox.dimensions.x;
+    const hitboxHeight = this.player.bodyHitbox.dimensions.y;
 
+    const renderY = canvasY - this.player.dimensions.y / 2;
+    const collisionYOffset = -20;
     const insetAmount = 6;
 
-    const leftX = Math.floor(
-      (canvasX + hitboxOffsetX + insetAmount) / Tile.SIZE
-    );
+    // Check three points across the hitbox width
+    const leftX = Math.floor((canvasX + offsetX + insetAmount) / Tile.SIZE);
     const centerX = Math.floor(
-      (canvasX + hitboxOffsetX + hitboxWidth / 2) / Tile.SIZE
+      (canvasX + offsetX + hitboxWidth / 2) / Tile.SIZE
     );
     const rightX = Math.floor(
-      (canvasX + hitboxOffsetX + hitboxWidth - insetAmount) / Tile.SIZE
+      (canvasX + offsetX + hitboxWidth - insetAmount) / Tile.SIZE
     );
     const centerY = Math.floor(
-      (canvasY + hitboxOffsetY + collisionYOffset + hitboxHeight / 2) /
-        Tile.SIZE
+      (renderY + offsetY + collisionYOffset + hitboxHeight / 2) / Tile.SIZE
     );
 
     return (

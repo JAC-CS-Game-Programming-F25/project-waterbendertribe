@@ -24,7 +24,6 @@ const resizeCanvas = () => {
   canvas.style.height = `${CANVAS_HEIGHT * scale}px`;
 };
 
-
 //update canvas dimensions based on current map
 export function setCanvasSize(width, height) {
   CANVAS_WIDTH = width;
@@ -54,4 +53,4 @@ export const sounds = new Sounds();
 
 //export const world = engine.world;
 
-export const DEBUG = false;
+export const DEBUG = true;
