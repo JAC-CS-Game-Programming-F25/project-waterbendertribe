@@ -1,25 +1,3 @@
-// import {
-// 	context,
-// 	DEBUG,
-// 	images,
-// 	matter,
-// 	world
-// } from "../globals.js";
-
-// const {
-// 	Bodies,
-// 	Composite,
-// } = matter;
-
-// export default class GameObject{
-     
-//     constructor(matterBody){
-//         this.body = 
-
-//     }
-// }
-
-
 import Vector from "../../lib/Vector.js";
 import Hitbox from "../../lib/Hitbox.js";
 import Direction from "../enums/Direction.js";
@@ -50,14 +28,8 @@ export default class GameObject {
 		// If an entity can overlap with this game object.
 		this.isSolid = false;
 
-		// If an entity should detect if it's overlapping this game object.
-		this.isCollidable = false;
-
 		// If the game object should disappear when collided with.
 		this.isConsumable = false;
-
-		// If the game object was collided with already.
-		this.wasCollided = false;
 
 		// If the game object was consumed already.
 		this.wasConsumed = false;
@@ -69,53 +41,22 @@ export default class GameObject {
 		const x = this.position.x + offset.x;
 		const y = this.position.y + offset.y;
 
-		this.sprites[this.currentFrame].render(Math.floor(x), Math.floor(y));
+		if (this.sprites && this.sprites.length > 0 && this.sprites[this.currentFrame]) {
+			this.sprites[this.currentFrame].render(Math.floor(x), Math.floor(y));
+		}
 
 		if (DEBUG) {
 			this.hitbox.render(context);
 		}
 	}
 
-	onCollision(collider) {
-		/**
-		 * If this object is solid, then set the
-		 * collider's position relative to this object.
-		 */
-		if (this.isSolid) {
-			const collisionDirection = this.getEntityCollisionDirection(collider.hitbox);
+	onConsume() {
+		this.wasConsumed = true;
+		this.cleanUp = true;
 
-			switch (collisionDirection) {
-				case Direction.Up:
-					collider.position.y = this.hitbox.position.y - Math.abs(collider.position.y - collider.hitbox.position.y) - collider.hitbox.dimensions.y;
-					break;
-				case Direction.Down:
-					collider.position.y = this.hitbox.position.y + this.hitbox.dimensions.y - Math.abs(collider.position.y - collider.hitbox.position.y);
-					break;
-				case Direction.Left:
-					collider.position.x = this.hitbox.position.x - Math.abs(collider.position.x - collider.hitbox.position.x) - collider.hitbox.dimensions.x;
-					break;
-				case Direction.Right:
-					collider.position.x = this.hitbox.position.x + this.hitbox.dimensions.x - Math.abs(collider.position.x - collider.hitbox.position.x);
-					break;
-			}
+		//switch to plinko map via the map instance
+		if (this.map.switchMap) {
+			this.map.switchMap("map");
 		}
-
-		this.wasCollided = true;
-	}
-
-	/**
-	 * @param {Hitbox} hitbox
-	 * @returns Whether this game object collided with an hitbox using AABB collision detection.
-	 */
-	didCollideWithEntity(hitbox) {
-		return this.hitbox.didCollide(hitbox);
-	}
-
-	/**
-	 * @param {Hitbox} hitbox
-	 * @returns The direction that the hitbox collided with this game object.
-	 */
-	getEntityCollisionDirection(hitbox) {
-		return this.hitbox.getCollisionDirection(hitbox);
 	}
 }

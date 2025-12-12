@@ -19,6 +19,30 @@
       "height": 32
     },
     {
+      "name": "plinko_ball",
+      "path": "./assets/images/plinko/slimeCat.png",
+      "width": 128,
+      "height": 32
+    },
+    {
+      "name": "speed",
+      "path": "./assets/images/PowerUps/Shoes.png",
+      "width": 31,
+      "height": 25
+    },
+        {
+      "name": "attack_increase",
+      "path": "./assets/images/PowerUps/Sword.png",
+      "width": 34,
+      "height": 32
+    },
+    {
+      "name": "defence",
+      "path": "./assets/images/PowerUps/shield.png",
+      "width": 30,
+      "height": 32
+    },
+    {
       "name": "wall",
       "path": "./assets/images/plinko/spritesheet (5).png",
       "width": 729,

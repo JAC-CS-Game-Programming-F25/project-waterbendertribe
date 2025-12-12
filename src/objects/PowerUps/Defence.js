@@ -1,30 +1,26 @@
-// import Sprite from "../../lib/Sprite.js";
- import Vector from "../../lib/Vector.js";
-import GameObject from "./GameObject.js";
-// import { images } from "../globals.js";
-// import ImageName from "../enums/ImageName.js";
-import Hitbox from '../../lib/Hitbox.js';
-
 import Sprite from "../../lib/Sprite.js";
+import Vector from "../../lib/Vector.js";
+import GameObject from "./GameObject.js";
 import { images } from "../globals.js";
 import ImageName from "../enums/ImageName.js";
-import Circle from "./Circle.js";
-export default class Ball extends GameObject {
+import Hitbox from '../../lib/Hitbox.js';
+
+export default class DefencePowerUp extends GameObject {
 	static WIDTH = 32;
 	static HEIGHT = 32;
 
 	constructor(position, map = null) {
 		super(
-			new Vector(Ball.WIDTH, Ball.HEIGHT),
+			new Vector(DefencePowerUp.WIDTH, DefencePowerUp.HEIGHT),
 			position
 		);
 		
 		this.map = map;
 
 		this.sprites = Sprite.generateSpritesFromSpriteSheet(
-			images.get(ImageName.Ball),
-			Ball.WIDTH,
-			Ball.HEIGHT
+			images.get(ImageName.DefencePowerUp),
+			DefencePowerUp.WIDTH,
+			DefencePowerUp.HEIGHT
 		);
 
 		this.hitboxOffsets = new Hitbox(0, 0, 0, 0);	
@@ -46,15 +42,5 @@ export default class Ball extends GameObject {
 			this.dimensions.x,
 			this.dimensions.y
 		);
-	}
-
-	onConsume() {
-		this.wasConsumed = true;
-		this.cleanUp = true;
-
-		// switch to plinko map via the map instance
-		if (this.map.switchMap) {
-			this.map.switchMap("PlinkoMap");
-		}
 	}
 }

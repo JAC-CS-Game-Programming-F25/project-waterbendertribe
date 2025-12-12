@@ -1,5 +1,6 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
+import PlinkoMap from "../services/PlinkoMap.js";
 import { input, setCanvasSize, context } from "../globals.js";
 
 /**
@@ -29,7 +30,7 @@ export default class PlayState extends State {
 
       context.setTransform(1, 0, 0, 1, 0, 0);
       setCanvasSize(480, 352);
-      this.map = new Map(this.plinkoMapDefinition, this);
+      this.map = new PlinkoMap(this.plinkoMapDefinition, this);
       this.currentMapName = "PlinkoMap";
       console.log("Switched to Plinko Map");
 
