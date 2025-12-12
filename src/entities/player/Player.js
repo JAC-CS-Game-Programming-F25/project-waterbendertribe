@@ -23,12 +23,12 @@ export default class Player extends GameEntity {
     super(entityDefinition);
 
     this.walkingSprites = Sprite.generateSpritesFromSpriteSheet(
-      images.get(ImageName.CatWalk),
+      images.get(ImageName.RedCatWalking),
       Player.CAT_WALKING_WIDTH,
       Player.CAT_WALKING_HEIGHT
     );
     this.runningSprites = Sprite.generateSpritesFromSpriteSheet(
-      images.get(ImageName.CatRunning),
+      images.get(ImageName.RedCatRunning),
       Player.CAT_RUNNING_WIDTH,
       Player.CAT_RUNNING_HEIGHT
     );
