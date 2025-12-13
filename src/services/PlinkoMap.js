@@ -133,7 +133,7 @@ export default class PlinkoBoard {
         
         // Calculate desired center position between beams
         const centerX = (left.body.position.x + right.body.position.x) / 2;
-        const centerY = Math.min(left.body.position.y, right.body.position.y) - 50;
+        const centerY = Math.min(left.body.position.y, right.body.position.y) - 40;
 
         // Rectangle constructor expects top-left; convert from center
         const x = centerX - PowerUp.WIDTH / 2;
