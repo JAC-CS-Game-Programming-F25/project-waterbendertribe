@@ -11,25 +11,18 @@ export default class Background {
   }
 
   render() {
-    this.sprites.forEach((sprite, index) => {
-      sprite.render(
-        index * Background.WIDTH,
-        CANVAS_HEIGHT - Background.HEIGHT
-      );
-    });
+    this.sprites[0].render(0, CANVAS_HEIGHT - Background.HEIGHT);
   }
 
   static generateSprites() {
-    const sprite = new Sprite(
-      images.get(ImageName.Background),
-      0,
-      0,
-      Background.WIDTH,
-      Background.HEIGHT
-    );
-
-    const count = Math.ceil(CANVAS_WIDTH / Background.WIDTH);
-
-    return Array.from({ length: count }, () => sprite);
+    return [
+      new Sprite(
+        images.get(ImageName.PlinkoBackground),
+        0,
+        0,
+        Background.WIDTH,
+        Background.HEIGHT
+      ),
+    ];
   }
 }

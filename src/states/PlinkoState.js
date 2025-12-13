@@ -6,15 +6,16 @@ import { engine, matter, stateMachine, world } from "../globals.js";
 const { Composite, Engine } = matter;
 
 export default class PlinkoState extends State {
-  constructor() {
+  constructor(playState = null) {
     super();
+    this.playState = playState;
     // Initialize level in constructor since enter() might not be called
-    this.level = new PlinkoLevel();
+    this.level = new PlinkoLevel(playState);
   }
 
   enter(parameters = {}) {
     // Reinitialize level on enter
-    this.level = new PlinkoLevel();
+    this.level = new PlinkoLevel(this.playState);
   }
 
   exit() {

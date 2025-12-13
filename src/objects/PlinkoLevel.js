@@ -11,18 +11,21 @@ import {
   stateMachine,
 } from "../globals.js";
 import GameStateName from "../enums/GameStateName.js";
+import Background from "./Background.js";
 
 const { Body, Composite, Sleeping } = matter;
 
 export default class PlinkoLevel {
-  constructor() {
-    this.board = new PlinkoBoard();
+  constructor(playState = null) {
+    this.playState = playState;
+    this.board = new PlinkoBoard(playState);
+    this.background = new Background();
+    
     this.balls = [];
     this.score = 0;
     this.canDropBall = true;
 
-    const spawnPos = this.board.getSpawnPosition();
-    this.spawnY = Math.max(spawnPos.y - 8, 20);
+    this.spawnY = 20;
 
     // Start in the middle
     this.readyBallX = CANVAS_WIDTH / 2;
@@ -106,6 +109,7 @@ export default class PlinkoLevel {
   }
 
   render() {
+    this.background.render();
     this.board.render();
 
     if (this.readyBall) {
@@ -142,3 +146,4 @@ export default class PlinkoLevel {
     this.canDropBall = false;
   }
 }
+
