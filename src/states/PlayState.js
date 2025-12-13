@@ -29,7 +29,7 @@ export default class PlayState extends State {
     } else if (mapName === "PlinkoMap" && this.currentMapName !== "PlinkoMap") {
       context.setTransform(1, 0, 0, 1, 0, 0);
       setCanvasSize(480, 352);
-      this.map = new PlinkoState();
+      this.map = new PlinkoState(this);
       this.currentMapName = "PlinkoMap";
       console.log("Switched to Plinko Map");
     }

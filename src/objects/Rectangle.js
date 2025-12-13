@@ -29,34 +29,10 @@ export default class Rectangle extends GameMatter {
 
     this.width = width;
     this.height = height;
-    this.renderOffset = { x: -this.width / 2, y: -this.height / 2 };
   }
 
   update(dt) {
-    if (this.didGoOffScreen()) {
-      this.shouldCleanUp = true;
-    }
-
     super.update(dt);
   }
-
-  render() {
-    super.render(() => {
-      context.lineWidth = 4;
-      context.strokeStyle = "blue";
-      context.strokeRect(
-        this.renderOffset.x,
-        this.renderOffset.y,
-        this.width,
-        this.height
-      );
-    });
-  }
-
-  didGoOffScreen() {
-    return (
-      this.body.position.x + this.height / 2 < 0 ||
-      this.body.position.x - this.height / 2 > CANVAS_WIDTH
-    );
-  }
+  
 }

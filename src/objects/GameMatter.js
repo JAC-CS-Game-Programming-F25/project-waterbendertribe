@@ -22,8 +22,23 @@ export default class GameMatter {
     this.sprites = [];
     this.currentFrame = 0;
 
+    this.isConsumable = false;
+
+		// If the game object was consumed already.
+		this.wasConsumed = false;
+
     Composite.add(world, body);
   }
+
+  onConsume() {
+		this.wasConsumed = true;
+		this.cleanUp = true;
+
+		//switch to plinko map via the map instance
+		if (this.map.switchMap) {
+			this.map.switchMap("map");
+		}
+	}
 
   update(dt) {
     if (this.shouldCleanUp) {

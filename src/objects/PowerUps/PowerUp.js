@@ -2,129 +2,91 @@ import Vector from "../../../lib/Vector.js";
 import GameObject from "../GameObject.js";
 import Hitbox from "../../../lib/Hitbox.js";
 import Sprite from "../../../lib/Sprite.js";
-import { matter, world, images } from "../../globals.js";
-import PowerUpType from "../../enums/PowerUpType.js";
+import { matter, world, images, context, DEBUG } from "../../globals.js";
+import BodyType from "../../enums/BodyType.js";
+import Rectangle from "../Rectangle.js";
+import GameMatter from "../GameMatter.js";
 
-const { Bodies, Composite } = matter;
+export default class PowerUp extends Rectangle {
+	static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 32, height: 40 }];
+  	static WIDTH = 35;
+  	static HEIGHT = 30;
 
-export default class PowerUp extends GameObject {
-	static WIDTH = 32;
-	static HEIGHT = 32;
+  constructor(x, y) {
+    super(x, y, PowerUp.WIDTH, PowerUp.HEIGHT, {
+      label: BodyType.PowerUp,
+      isStatic: true,
+      restitution: 0.1,
+      friction: 0.3,
+    });
 
-	constructor(position, map = null) {
-		super(
-			new Vector(PowerUp.WIDTH, PowerUp.HEIGHT),
-			position
-		);
+    // Keep a back-reference on the body for collision callbacks
+    this.body.entity = this;
+    this.body.gameObject = this;
 
-		this.map = map;
-		this.isConsumable = true;
-		this.wasConsumed = false;
-		this.currentFrame = 0;
-		this.cleanUp = false;
-		this.sprites = [];
-		
-		// Create Matter.js sensor body (for collision detection)
-		this.body = Bodies.rectangle(
-			position.x + PowerUp.WIDTH / 2,
-			position.y + PowerUp.HEIGHT / 2,
-			PowerUp.WIDTH,
-			PowerUp.HEIGHT,
-			{
-				isStatic: true,
-				isSensor: true,
-				label: 'powerup'
-			}
-		);
-		
-		this.body.powerUpObject = this;
-		Composite.add(world, this.body);
-		
-		// Setup hitbox
-		this.hitboxOffsets = new Hitbox(0, 0, 0, 0);
-		this.hitbox = new Hitbox(
-			this.position.x,
-			this.position.y,
-			PowerUp.WIDTH,
-			PowerUp.HEIGHT
-		);
-	}
+    const spriteSheet = "power_up_sheet";
 
-		onConsume() {
-			this.wasConsumed = true;
-			this.cleanUp = true;
-			if (this.body) {
-				Composite.remove(world, this.body);
-			}
+    this.sprites = GameMatter.generateSprites(
+      PowerUp.SPRITE_MEASUREMENTS,
+      spriteSheet
+    );
 
-			// Return to main map when collected in plinko
-			if (this.map && this.map.playState && typeof this.map.playState.switchMap === "function") {
-				this.map.playState.switchMap("map");
-			}
-		}
+	this.isConsumable = true;
+	this.wasConsumed = false;
 
-	update(dt) {
-		super.update(dt);
-		
-		this.hitbox.set(
-			this.position.x,
-			this.position.y,
-			PowerUp.WIDTH,
-			PowerUp.HEIGHT
-		);
-	}
+    // Center sprite and hitbox around body origin
+    this.renderOffset = {
+      x: -PowerUp.WIDTH / 2,
+      y: -PowerUp.HEIGHT / 2,
+    };
 
-	render(offset = { x: 0, y: 0 }) {
-		if (!this.wasConsumed) {
-			super.render(offset);
-		}
-	}
-	
-	destroy() {
-		if (this.body) {
-			Composite.remove(world, this.body);
-		}
-	}
+  }
 
-	/**
-	 * Load sprite image based on power-up type
-	 * @param {string} type - The power-up type from PowerUpType enum
-	 */
-	loadImageByType(type) {
-		let imageName = null;
-		let spriteWidth = PowerUp.WIDTH;
-		let spriteHeight = PowerUp.HEIGHT;
+  update(dt) {
+    super.update(dt);
+  }
 
-		// Map power-up types to image names and dimensions
-		switch (type) {
-			case PowerUpType.SpeedPowerUp:
-				imageName = "speed";
-				spriteWidth = 31;
-				spriteHeight = 25;
-				break;
-			case PowerUpType.AttackIncrease:
-				imageName = "attack_increase";
-				spriteWidth = 34;
-				spriteHeight = 32;
-				break;
-			case PowerUpType.DefencePowerUp:
-				imageName = "defence";
-				spriteWidth = 30;
-				spriteHeight = 32;
-				break;
-		}
+   onConsume() {
+    this.wasConsumed = true;
+    this.shouldCleanUp = true;
 
-		if (imageName) {
-			const image = images.get(imageName);
-			if (image) {
-				this.sprites = Sprite.generateSpritesFromSpriteSheet(
-					image,
-					spriteWidth,
-					spriteHeight
-				);
-			} else {
-				console.warn(`PowerUp: Image not found for type "${type}"`);
-			}
-		}
-	}
+    if (this.body) {
+      matter.Composite.remove(world, this.body);
+    }
+
+    // Return to main map when collected in plinko
+    if (this.playState && typeof this.playState.switchMap === "function") {
+      this.playState.switchMap("map");
+    }
+  }
+
+  render() {
+    if (!this.sprites || !this.sprites[this.currentFrame]) return;
+
+    context.save();
+    context.translate(this.body.position.x, this.body.position.y);
+    context.rotate(this.body.angle);
+
+    // Draw sprite
+    this.sprites[this.currentFrame].render(
+      this.renderOffset.x,
+      this.renderOffset.y
+    );
+
+    // Draw hitbox overlay for debugging/visibility
+    context.lineWidth = 2;
+    context.strokeStyle = "red";
+    context.strokeRect(
+      this.renderOffset.x,
+      this.renderOffset.y,
+      this.width,
+      this.height
+    );
+
+    context.restore();
+  }
 }
+
+
+
+
