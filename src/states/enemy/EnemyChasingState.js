@@ -3,6 +3,8 @@ import State from "../../../lib/State.js";
 import Direction from "../../enums/Direction.js";
 import EnemyStateName from "../../enums/EnemyStateName.js";
 import Tile from "../../services/Tile.js";
+import Player from "../../entities/player/Player.js";
+import Enemy from "../../entities/Enemy.js";
 
 export default class EnemyChasingState extends State {
   static ATTACK_RANGE = 40; // Stop moving when this close to player
@@ -24,7 +26,7 @@ export default class EnemyChasingState extends State {
   }
 
   enter() {
-    this.enemy.speed = this.enemy.constructor.CHASE_SPEED;
+    this.enemy.speed = Enemy.CHASE_SPEED;
     this.directionUpdateCooldown = 0;
   }
 
@@ -38,11 +40,10 @@ export default class EnemyChasingState extends State {
 
     // Check if enemy is close enough to attack (stop moving)
     if (this.isInAttackRange()) {
-      // Stop moving - just face the player
       this.enemy.direction = this.enemy.getDirectionToPlayer();
       this.enemy.currentAnimation = this.animation[this.enemy.direction];
-      // TODO: Add attack animation/logic here
-      return; // Don't chase - we're in attack range
+      this.enemy.changeState(EnemyStateName.Attacking);
+      return;
     }
 
     // Update direction cooldown
@@ -63,16 +64,14 @@ export default class EnemyChasingState extends State {
    */
   isInAttackRange() {
     const enemyCenterX =
-      this.enemy.canvasPosition.x + this.enemy.constructor.WIDTH / 2;
+      this.enemy.canvasPosition.x + (this.enemy.dimensions?.x || 32) / 2;
     const enemyCenterY =
-      this.enemy.canvasPosition.y + this.enemy.constructor.HEIGHT / 2;
+      this.enemy.canvasPosition.y + (this.enemy.dimensions?.y || 32) / 2;
 
     const playerCenterX =
-      this.enemy.player.canvasPosition.x +
-      (32 * this.enemy.player.constructor.SCALE) / 2;
+      this.enemy.player.canvasPosition.x + (32 * (Player.SCALE || 1)) / 2;
     const playerCenterY =
-      this.enemy.player.canvasPosition.y +
-      (32 * this.enemy.player.constructor.SCALE) / 2;
+      this.enemy.player.canvasPosition.y + (32 * (Player.SCALE || 1)) / 2;
 
     const distance = Math.sqrt(
       Math.pow(playerCenterX - enemyCenterX, 2) +
@@ -130,8 +129,7 @@ export default class EnemyChasingState extends State {
     ) {
       // Try moving up or down instead
       const playerCenterY = this.enemy.player.canvasPosition.y + 16;
-      const enemyCenterY =
-        this.enemy.canvasPosition.y + this.enemy.constructor.HEIGHT / 2;
+      const enemyCenterY = this.enemy.canvasPosition.y + Enemy.HEIGHT / 2;
 
       if (playerCenterY > enemyCenterY) {
         newCanvasY += moveDelta;
@@ -142,8 +140,7 @@ export default class EnemyChasingState extends State {
     // If moving vertically and blocked, try horizontal
     else {
       const playerCenterX = this.enemy.player.canvasPosition.x + 16;
-      const enemyCenterX =
-        this.enemy.canvasPosition.x + this.enemy.constructor.WIDTH / 2;
+      const enemyCenterX = this.enemy.canvasPosition.x + Enemy.WIDTH / 2;
 
       if (playerCenterX > enemyCenterX) {
         newCanvasX += moveDelta;
@@ -167,20 +164,16 @@ export default class EnemyChasingState extends State {
     const mapWidth = this.enemy.map.width * Tile.SIZE;
     const mapHeight = this.enemy.map.height * Tile.SIZE;
 
-    if (canvasX < 0 || canvasX + this.enemy.constructor.WIDTH > mapWidth) {
+    if (canvasX < 0 || canvasX + Enemy.WIDTH > mapWidth) {
       return false;
     }
-    if (canvasY < 0 || canvasY + this.enemy.constructor.HEIGHT > mapHeight) {
+    if (canvasY < 0 || canvasY + Enemy.HEIGHT > mapHeight) {
       return false;
     }
 
     // Check collision layer
-    const tileX = Math.floor(
-      (canvasX + this.enemy.constructor.WIDTH / 2) / Tile.SIZE
-    );
-    const tileY = Math.floor(
-      (canvasY + this.enemy.constructor.HEIGHT / 2) / Tile.SIZE
-    );
+    const tileX = Math.floor((canvasX + Enemy.WIDTH / 2) / Tile.SIZE);
+    const tileY = Math.floor((canvasY + Enemy.HEIGHT / 2) / Tile.SIZE);
 
     return this.enemy.map.collisionLayer.getTile(tileX, tileY) === null;
   }
