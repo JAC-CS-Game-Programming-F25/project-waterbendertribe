@@ -29,6 +29,9 @@ const ImageName = {
   OrangeCatRunning: "orange_cat_running",
   PurpleCatRunning: "purple_cat_running",
   RedCatRunning: "red_cat_running",
+
+  ClawSlash: "claw_slash",
+  Hearts: "hearts",
 };
 
 export default ImageName;

@@ -15,6 +15,7 @@ export default class PlayState extends State {
     this.plinkoMapDefinition = plinkoMapDefinition;
 
     this.map = new Map(mainMapDefinition, this);
+    // need to add userinterface here potentiatlly althought player needs to be intialize before everything
     this.currentMapName = "map";
   }
 

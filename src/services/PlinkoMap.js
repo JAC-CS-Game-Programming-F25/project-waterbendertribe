@@ -29,7 +29,6 @@ export default class PlinkoBoard {
 
     this.pegs = [];
     this.createPegs();
-    this.registerCollisionEvents();
   }
 
   update(dt) {
@@ -119,44 +118,5 @@ export default class PlinkoBoard {
       x: CANVAS_WIDTH / 2,
       y: PlinkoBoard.GRID_SIZE * 1.5,
     };
-  }
-
-  /**
-   * Register collision events
-   */
-  registerCollisionEvents() {
-    Events.on(engine, EventName.CollisionStart, (event) => {
-      this.onCollisionStart(event);
-    });
-  }
-
-  /**
-   * Handle collision start
-   */
-  onCollisionStart(event) {
-    event.pairs.forEach((pair) => {
-      const { bodyA, bodyB } = pair;
-
-      // Ball hits peg
-      if (this.isBall(bodyA) && this.isPeg(bodyB)) {
-        this.handleBallPegCollision(bodyA, bodyB);
-      } else if (this.isBall(bodyB) && this.isPeg(bodyA)) {
-        this.handleBallPegCollision(bodyB, bodyA);
-      }
-    });
-  }
-
-  isBall(body) {
-    return body.label === BodyType.Bird;
-  }
-
-  isPeg(body) {
-    return body.label === BodyType.Pig;
-  }
-
-  handleBallPegCollision(ballBody, pegBody) {
-    if (pegBody.entity) {
-      pegBody.entity.flash();
-    }
   }
 }

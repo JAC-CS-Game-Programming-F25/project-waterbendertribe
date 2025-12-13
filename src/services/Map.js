@@ -18,6 +18,7 @@ import Vector from "../../lib/Vector.js";
 import Player from "../entities/player/Player.js";
 import EnemyFactory from "./EnemyFactory.js";
 import Ball from "../objects/Ball.js";
+import UserInterface from "./UserInterface.js";
 
 export default class Map {
   constructor(mapDefinition, playState = null) {
@@ -40,6 +41,8 @@ export default class Map {
 
     // Create player
     this.player = new Player({ position: new Vector(20, 20) }, this);
+    this.userInterface = new UserInterface(this.player);
+
     // Create camera
     this.useCamera = this.width;
     this.camera = new Camera(
@@ -47,19 +50,22 @@ export default class Map {
       this.width * Tile.SIZE,
       this.height * Tile.SIZE
     );
+
+    // Game objects
     this.balls = [];
     this.spawnRandomBalls(5);
+
     // Create enemies using factory
     this.enemies = this.createEnemies();
   }
 
   /**
    * Create random enemies at spawn points using EnemyFactory
+   * eventually will be place in a circle formate at the start of the game
    */
   createEnemies() {
     const enemies = [];
 
-    // Define enemy spawn positions (tile coordinates)
     const spawnPositions = [
       new Vector(10, 10),
       new Vector(15, 5),
@@ -68,7 +74,6 @@ export default class Map {
       new Vector(20, 15),
     ];
 
-    // Create a RANDOM enemy at each spawn point
     spawnPositions.forEach((position) => {
       const type = EnemyFactory.getRandomCatType();
       const enemy = EnemyFactory.createInstance(
@@ -78,10 +83,6 @@ export default class Map {
         this.player
       );
       enemies.push(enemy);
-
-      console.log(
-        `Spawned ${enemy.type} enemy at (${position.x}, ${position.y})`
-      );
     });
 
     return enemies;
@@ -89,7 +90,6 @@ export default class Map {
 
   /**
    * Spawn random balls on the map
-   * @param {number} count - Number of balls to spawn
    */
   spawnRandomBalls(count) {
     for (let i = 0; i < count; i++) {
@@ -111,36 +111,76 @@ export default class Map {
     this.player.update(dt);
     this.camera.update(dt);
 
-    // Update all enemies
-    this.enemies.forEach((enemy) => {
-      enemy.update(dt);
-
-      // Check if player's claw hit this enemy
-      if (
-        this.player.isClawActive() &&
-        this.player.clawHitbox.didCollide(enemy.hitbox)
-      ) {
-        this.handleEnemyHit(enemy);
-      }
-    });
+    // Zelda collsiion
+    this.updateCollision(dt);
     this.updateEntities(dt);
+
     this.cleanUpEntities();
   }
 
+  /**
+   * Collision detection frrom Zelda
+   */
+  updateCollision(dt) {
+    this.enemies.forEach((enemy) => {
+      enemy.update(dt);
+
+      if (enemy.isDead) return;
+
+      if (
+        this.player.isClawActive() &&
+        this.player.didCollideWithEntity(enemy.hitbox)
+      ) {
+        this.handleDamage(this.player, enemy);
+      }
+
+      if (
+        enemy.isClawActive() &&
+        enemy.didCollideWithEntity(this.player.bodyHitbox)
+      ) {
+        this.handleDamage(enemy, this.player);
+      }
+    });
+  }
+
+  handleDamage(attacker, receiver) {
+    attacker.deactivateClawHitbox();
+
+    const baseDamage = (attacker.strength ?? 0) + 1;
+    const defenseReduction = receiver.defense ?? 0;
+    const finalDamage = Math.max(baseDamage - defenseReduction, 1); // this will always be min 0.5
+
+    receiver.receiveDamage(finalDamage);
+  }
+
+  /**
+   * Update all game entities
+   */
   updateEntities(dt) {
+    // Update balls
     this.balls.forEach((ball) => ball.update(dt));
 
     this.balls.forEach((ball) => {
       if (ball.isConsumable && !ball.wasConsumed && !ball.cleanUp) {
-   
-        if (ball.hitbox && this.player.bodyHitbox && ball.hitbox.didCollide(this.player.bodyHitbox)) {
+        if (
+          ball.hitbox &&
+          this.player.bodyHitbox &&
+          ball.hitbox.didCollide(this.player.bodyHitbox)
+        ) {
           ball.onConsume(this.player);
         }
       }
     });
   }
 
+  /**
+   * Clean up dead entities and consumed items (Zelda-style)
+   */
   cleanUpEntities() {
+    // Remove dead enemies
+    this.enemies = this.enemies.filter((enemy) => !enemy.isDead);
+
+    // Remove consumed balls
     this.balls = this.balls.filter((ball) => !ball.cleanUp);
   }
 
@@ -152,15 +192,16 @@ export default class Map {
     // Render bottom layer
     this.bottomLayer.render();
 
-    this.collisionLayer.render();
-
-    // Render all enemies (before player so player appears on top if overlapping)
+    this.collisionLayer.render(); // Collision layer
     this.enemies.forEach((enemy) => {
       enemy.render();
     });
 
+    // Render balls
     this.balls.forEach((ball) => ball.render());
-    this.player.render(); // Render player
+
+    // Render player
+    this.player.render();
 
     // Render top layer (trees, etc. that appear above player)
     this.topLayer.render();
@@ -176,23 +217,8 @@ export default class Map {
     if (this.useCamera) {
       this.camera.resetTransform(context);
     }
-  }
 
-  /**
-   * Handle when player hits an enemy with claw attack
-   */
-  handleEnemyHit(enemy) {
-    console.log(`${enemy.type} enemy hit!`);
-
-    // Deactivate claw so it only hits once per attack
-    this.player.deactivateClawHitbox();
-
-    // TODO: Add enemy damage/death logic here
-    // For now, just remove the enemy
-    const index = this.enemies.indexOf(enemy);
-    if (index > -1) {
-      this.enemies.splice(index, 1);
-    }
+    this.userInterface.render();
   }
 
   static renderGrid() {
