@@ -53,7 +53,7 @@ export default class Player extends GameEntity {
     this.totalHealth = Player.MAX_HEALTH;
     this.health = Player.MAX_HEALTH;
     this.strength = 1;
-    this.defense = 1;
+    this.defense = 0;
 
     // Invulnerability system
     this.isInvulnerable = false;
@@ -64,6 +64,9 @@ export default class Player extends GameEntity {
     this.sprites = this.walkingSprites;
     this.currentAnimation =
       this.stateMachine.currentState.animation[this.direction];
+
+    // Speed boost flag (set by power-ups)
+    this.speedBoostActive = false;
   }
 
   update(dt) {

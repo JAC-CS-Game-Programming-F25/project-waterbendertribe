@@ -47,9 +47,23 @@ export default class PlayState extends State {
     if (input.isKeyPressed("p")) {
       this.switchMap("PlinkoMap");
     }
+
+    //this.checkWinOrLose();
   }
 
   render() {
     this.map.render();
   }
+
+  // checkWinOrLose() {
+	// 	if (this.level.didWin()) {
+	// 		stateMachine.change(GameStateName.Victory, {
+	// 			background: this.level.background
+	// 		});
+	// 	} else if (this.level.didLose()) {
+	// 		stateMachine.change(GameStateName.GameOver, {
+	// 			background: this.level.background,
+	// 		});
+	// 	}
+	// }
 }

@@ -1,47 +1,40 @@
-import Sprite from "../../lib/Sprite.js";
-import Vector from "../../lib/Vector.js";
-import GameObject from "./GameObject.js";
-import { images } from "../globals.js";
-import ImageName from "../enums/ImageName.js";
-import Hitbox from '../../lib/Hitbox.js';
 import PowerUp from "./PowerUp.js";
+import GameMatter from "../GameMatter.js";
+import { timer } from "../../globals.js";
 
-export default class AttackIncrease extends PowerUp {
-	static WIDTH = 32;
-	static HEIGHT = 32;
+export default class AttackIncreasePowerUp extends PowerUp {
+  static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 32, height: 32 }];
+  static DURATION = 10;
+  static STRENGTH_INCREASE = 1;
 
-	constructor(position, map = null) {
-		super(
-			new Vector(AttackIncrease.WIDTH, AttackIncrease.HEIGHT),
-			position
-		);
-		
-		this.map = map;
+  constructor(x, y) {
+    super(x, y);
 
-		this.sprites = Sprite.generateSpritesFromSpriteSheet(
-			images.get(ImageName.AttackIncrease),
-			AttackIncrease.WIDTH,
-			AttackIncrease.HEIGHT
-		);
+    const spriteSheet = "power_up_sheet";
+    this.sprites = GameMatter.generateSprites(
+      AttackIncreasePowerUp.SPRITE_MEASUREMENTS,
+      spriteSheet
+    );
+  }
 
-		this.hitboxOffsets = new Hitbox(0, 0, 0, 0);	
+  onConsume() {
 
-		this.currentFrame = 0;
+    if (this.playState && this.playState.mainMap && this.playState.mainMap.player) {
 
-		this.isConsumable = true;
-		this.isCollidable = true;
-		this.isSolid = false;
-		this.wasConsumed = false;
-	}
+      const player = this.playState.mainMap.player;
 
-	update(dt) {
-		super.update(dt);
-		
-		this.hitbox.set(
-			this.position.x,
-			this.position.y,
-			this.dimensions.x,
-			this.dimensions.y
-		);
-	}
+      player.strength += AttackIncreasePowerUp.STRENGTH_INCREASE;
+
+      timer.addTask(
+        () => {},
+        0,
+        AttackIncreasePowerUp.DURATION,
+        () => {
+          player.strength = Math.max(0, player.strength - AttackIncreasePowerUp.INCREASE);
+        }
+      );
+    }
+
+    super.onConsume();
+  }
 }

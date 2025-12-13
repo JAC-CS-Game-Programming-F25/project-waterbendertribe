@@ -8,7 +8,6 @@ import Rectangle from "../Rectangle.js";
 import GameMatter from "../GameMatter.js";
 
 export default class PowerUp extends Rectangle {
-	static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 32, height: 40 }];
   	static WIDTH = 35;
   	static HEIGHT = 30;
 
@@ -24,12 +23,6 @@ export default class PowerUp extends Rectangle {
     this.body.entity = this;
     this.body.gameObject = this;
 
-    const spriteSheet = "power_up_sheet";
-
-    this.sprites = GameMatter.generateSprites(
-      PowerUp.SPRITE_MEASUREMENTS,
-      spriteSheet
-    );
 
 	this.isConsumable = true;
 	this.wasConsumed = false;

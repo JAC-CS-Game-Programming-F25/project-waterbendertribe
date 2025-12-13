@@ -39,10 +39,7 @@ export default class PlayerRunningState extends State {
   }
 
   handleMovement(dt) {
-    if (input.isKeyPressed(Input.KEYS.SHIFT)) {
-      this.player.isRunning = !this.player.isRunning;
-    }
-
+    
     if (input.isKeyPressed(Input.KEYS.SPACE)) {
       this.player.changeState(CatStateName.Attacking);
     }

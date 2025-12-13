@@ -31,7 +31,7 @@ export default class PlinkoBoard {
     this.powerUps = [];
     this.playState = playState;
 
-    this.createPegs();
+   // this.createPegs();
     this.createBeams();
     this.createPowerUps();
     this.registerCollisionEvents();
@@ -95,28 +95,28 @@ export default class PlinkoBoard {
     Composite.add(world, walls);
   }
 
-  createPegs() {
-    const pegRows = [
-      { row: -1, cols: 7, offset: 0 },
-      { row: 1, cols: 7, offset: 1 },
-      { row: 3, cols: 7, offset: 0 },
-      { row: 5, cols: 7, offset: 1 },
-    ];
+  // createPegs() {
+  //   const pegRows = [
+  //     { row: -1, cols: 7, offset: 0 },
+  //     { row: 1, cols: 7, offset: 1 },
+  //     { row: 3, cols: 7, offset: 0 },
+  //     { row: 5, cols: 7, offset: 1 },
+  //   ];
 
-    pegRows.forEach((config) => {
-      const spacing = (this.gridCols - 1) / (config.cols + 1);
+  //   pegRows.forEach((config) => {
+  //     const spacing = (this.gridCols - 1) / (config.cols + 1);
 
-      for (let col = 0; col < config.cols; col++) {
-        const x =
-          PlinkoBoard.GRID_SIZE *
-          ((col + 1) * spacing + (config.offset * spacing) / 2);
-        const y = PlinkoBoard.GRID_SIZE * (config.row + 3);
+  //     for (let col = 0; col < config.cols; col++) {
+  //       const x =
+  //         PlinkoBoard.GRID_SIZE *
+  //         ((col + 1) * spacing + (config.offset * spacing) / 2);
+  //       const y = PlinkoBoard.GRID_SIZE * (config.row + 3);
 
-        const peg = new PlinkoPeg(x, y);
-        this.pegs.push(peg);
-      }
-    });
-  }
+  //       const peg = new PlinkoPeg(x, y);
+  //       this.pegs.push(peg);
+  //     }
+  //   });
+  // }
 
   createPowerUps() {
     const types = [
