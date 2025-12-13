@@ -6,7 +6,7 @@ import Rectangle from "./Rectangle.js";
 export default class PlinkoBeam extends Rectangle {
   static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 15, height: 128 }];
   static WIDTH = 13;
-  static HEIGHT = 30;
+  static HEIGHT = 128;
 
   constructor(x, y) {
     super(x, y, PlinkoBeam.WIDTH, PlinkoBeam.HEIGHT, {
@@ -22,12 +22,9 @@ export default class PlinkoBeam extends Rectangle {
       spriteSheet
     );
 
-    const spriteWidth = PlinkoBeam.SPRITE_MEASUREMENTS[0].width;
-    const spriteHeight = PlinkoBeam.SPRITE_MEASUREMENTS[0].height;
-
     this.renderOffset = {
-      x: -spriteWidth / 2,
-      y: -spriteHeight / 2,
+      x: -PlinkoBeam.WIDTH / 2,
+      y: -PlinkoBeam.HEIGHT / 2,
     };
 
   }
@@ -51,7 +48,7 @@ export default class PlinkoBeam extends Rectangle {
 
     // Draw hitbox overlay for debugging/visibility
     context.lineWidth = 2;
-    context.strokeStyle = "red";
+    context.strokeStyle = "blue";
     context.strokeRect(
       this.renderOffset.x,
       this.renderOffset.y,
