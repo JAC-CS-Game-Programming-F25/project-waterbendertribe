@@ -11,12 +11,15 @@ import {
   stateMachine,
 } from "../globals.js";
 import GameStateName from "../enums/GameStateName.js";
+import Background from "./Background.js";
 
 const { Body, Composite, Sleeping } = matter;
 
 export default class PlinkoLevel {
   constructor() {
     this.board = new PlinkoBoard();
+    this.background = new Background();
+    
     this.balls = [];
     this.score = 0;
     this.canDropBall = true;
@@ -106,6 +109,7 @@ export default class PlinkoLevel {
   }
 
   render() {
+    this.background.render();
     this.board.render();
 
     if (this.readyBall) {

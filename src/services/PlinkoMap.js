@@ -10,7 +10,6 @@ import {
   CANVAS_HEIGHT,
   context,
 } from "../globals.js";
-import Background from "../objects/Background.js";
 
 const { Bodies, Composite, Events } = matter;
 
@@ -24,8 +23,6 @@ export default class PlinkoBoard {
   constructor() {
     this.gridCols = Math.ceil(CANVAS_WIDTH / PlinkoBoard.GRID_SIZE);
     this.gridRows = Math.ceil(CANVAS_HEIGHT / PlinkoBoard.GRID_SIZE);
-
-    this.background = new Background();
 
     this.pegs = [];
     this.createPegs();
