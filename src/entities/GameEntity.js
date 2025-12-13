@@ -1,6 +1,7 @@
 import Direction from "../enums/Direction.js";
 import Tile from "../services/Tile.js";
 import Vector from "../../lib/Vector.js";
+import Hitbox from "../../lib/Hitbox.js";
 
 export default class GameEntity {
   static WIDTH = 32;
@@ -24,6 +25,16 @@ export default class GameEntity {
     this.stateMachine = null;
     this.currentFrame = 0;
     this.sprites = [];
+    this.speed = entityDefinition.speed ?? 1;
+    this.totalHealth = entityDefinition.health ?? 1;
+    this.damage = entityDefinition.damage ?? 1;
+    this.hitboxOffsets = entityDefinition.hitboxOffsets ?? new Hitbox();
+    this.hitbox = new Hitbox(
+      this.position.x + this.hitboxOffsets.position.x,
+      this.position.y + this.hitboxOffsets.position.y,
+      this.dimensions.x + this.hitboxOffsets.dimensions.x,
+      this.dimensions.y + this.hitboxOffsets.dimensions.y
+    );
   }
 
   /**
@@ -31,6 +42,13 @@ export default class GameEntity {
    */
   update(dt) {
     this.stateMachine?.update(dt);
+  }
+  /**
+   * @param {Hitbox} hitbox
+   * @returns Whether this hitbox collided with another using AABB collision detection.
+   */
+  didCollideWithEntity(hitbox) {
+    return this.hitbox.didCollide(hitbox);
   }
 
   render(x, y) {

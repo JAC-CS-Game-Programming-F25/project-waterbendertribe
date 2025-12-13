@@ -6,18 +6,21 @@ import EnemyWalkingState from "../states/enemy/EnemyWalkingState.js";
 import EnemyChasingState from "../states/enemy/EnemyChasingState.js";
 import Vector from "../../lib/Vector.js";
 import Direction from "../enums/Direction.js";
-import Sprite from "../../lib/Sprite.js";
 import Hitbox from "../../lib/Hitbox.js";
-import ImageName from "../enums/ImageName.js";
-import { context, DEBUG, images } from "../globals.js";
+import { context, DEBUG } from "../globals.js";
+import EnemyAttackState from "../states/enemy/EnemyAttackState.js";
 
 export default class Enemy extends GameEntity {
   static WIDTH = 32;
   static HEIGHT = 32;
-  static SCALE = 1.5;
-  static PERCEPTION_RADIUS = 150; // How far enemy can "see" player
-  static CHASE_SPEED = 80; // Speed when chasing player
-  static WANDER_SPEED = 40; // Speed when wandering randomly
+  static SCALE = 1.7;
+  static PERCEPTION_RADIUS = 150;
+  static CHASE_SPEED = 80;
+  static WANDER_SPEED = 40;
+
+  // Invulnerability settings (Zelda-style)
+  static INVULNERABLE_DURATION = 0.5;
+  static INVULNERABLE_FLASH_INTERVAL = 0.08;
 
   constructor(
     entityDefinition = {},
@@ -31,21 +34,36 @@ export default class Enemy extends GameEntity {
 
     this.map = map;
     this.player = player;
-    this.type = type; // Store enemy type (color)
+    this.type = type || "Enemy";
 
-    // ✅ FIXED: Accept sprites from factory instead of loading internally
     this.walkingSprites = walkingSprites;
     this.runningSprites = runningSprites;
-    this.sprites = this.walkingSprites; // Start with walking sprites
+    this.sprites = this.walkingSprites;
 
     this.dimensions = new Vector(Enemy.WIDTH, Enemy.HEIGHT);
     this.speed = Enemy.WANDER_SPEED;
+
+    // States
+    this.totalHealth = entityDefinition.health ?? 6;
+    this.health = this.totalHealth;
+    this.speed = Enemy.WANDER_SPEED;
+    this.strength = 1;
+    this.defense = 0;
+
+    this.isDead = false; // Death flag
+
+    // Invulnerability system (Zelda-style)
+    this.isInvulnerable = false;
+    this.invulnerabilityTimer = 0;
+    this.flashTimer = 0;
+    this.alpha = 1;
 
     // Hitbox for collisions
     this.hitbox = new Hitbox(0, 0, 20, 20, "orange");
     this.hitboxOffsets = { x: 6, y: 6 };
 
-    // Perception circle (for debug visualization)
+    this.clawHitbox = new Hitbox(0, 0, 0, 0, "yellow");
+
     this.perceptionRadius = Enemy.PERCEPTION_RADIUS;
 
     this.stateMachine = this.initializeStateMachine();
@@ -58,6 +76,75 @@ export default class Enemy extends GameEntity {
     this.currentAnimation.update(dt);
     this.currentFrame = this.currentAnimation.getCurrentFrame();
     this.updateHitbox();
+    this.updateInvulnerability(dt);
+  }
+
+  /**
+   * Receive damage
+   */
+  receiveDamage(damage) {
+    // Can't take damage while invulnerable or dead
+    if (this.isDead || this.isInvulnerable) {
+      return;
+    }
+
+    this.health -= damage;
+
+    // Activate invulnerability after taking damage
+    this.becomeInvulnerable();
+
+    if (this.health <= 0) {
+      this.health = 0;
+      this.isDead = true;
+    }
+    // sounds.play(SoundName.HitEnemy);
+  }
+
+  /**
+   * Activate invulnerability frames after taking damage (Zelda-style)
+   */
+  becomeInvulnerable() {
+    this.isInvulnerable = true;
+    this.invulnerabilityTimer = Enemy.INVULNERABLE_DURATION;
+    this.flashTimer = Enemy.INVULNERABLE_FLASH_INTERVAL;
+    this.alpha = 0.3;
+  }
+
+  /**
+   * Update invulnerability timer and flashing effect (Zelda-style)
+   */
+  updateInvulnerability(dt) {
+    if (!this.isInvulnerable) return;
+
+    // Countdown invulnerability timer
+    this.invulnerabilityTimer -= dt;
+
+    // Update flash timer
+    this.flashTimer -= dt;
+
+    if (this.flashTimer <= 0) {
+      // Toggle alpha for flashing effect
+      this.alpha = this.alpha === 1 ? 0.3 : 1;
+      this.flashTimer = Enemy.INVULNERABLE_FLASH_INTERVAL;
+    }
+
+    // End invulnerability
+    if (this.invulnerabilityTimer <= 0) {
+      this.isInvulnerable = false;
+      this.alpha = 1;
+    }
+  }
+
+  isClawActive() {
+    return this.clawHitbox.dimensions.x > 0 && this.clawHitbox.dimensions.y > 0;
+  }
+
+  activateClawHitbox(x, y, width, height) {
+    this.clawHitbox.set(x, y, width, height);
+  }
+
+  deactivateClawHitbox() {
+    this.clawHitbox.set(0, 0, 0, 0);
   }
 
   updateHitbox() {
@@ -65,6 +152,21 @@ export default class Enemy extends GameEntity {
     const y = Math.floor(this.canvasPosition.y);
 
     this.hitbox.set(x + this.hitboxOffsets.x, y + this.hitboxOffsets.y, 20, 20);
+  }
+
+  /**
+   * Check collision with entity using AABB collision detection
+   * Uses CLAW hitbox when attacking, BODY hitbox otherwise
+   * @param {Hitbox} hitbox - The hitbox to check collision against
+   * @returns {boolean} Whether collision occurred
+   */
+  didCollideWithEntity(hitbox) {
+    // If claw is active (attacking), check claw collision
+    if (this.isClawActive()) {
+      return this.clawHitbox.didCollide(hitbox);
+    }
+    // Otherwise check body collision
+    return this.hitbox.didCollide(hitbox);
   }
 
   render() {
@@ -77,6 +179,10 @@ export default class Enemy extends GameEntity {
     context.save();
     context.translate(x, y);
     context.scale(effectiveScale, effectiveScale);
+
+    // Apply alpha for invulnerability flashing
+    context.globalAlpha = this.alpha;
+
     this.sprites[this.currentFrame].render(0, 0);
     context.restore();
 
@@ -84,7 +190,14 @@ export default class Enemy extends GameEntity {
       // Draw hitbox
       this.hitbox.render(context);
 
-      // Draw perception radius
+      if (
+        this.clawHitbox.dimensions.x > 0 &&
+        this.clawHitbox.dimensions.y > 0
+      ) {
+        this.clawHitbox.render(context);
+      }
+
+      // Draw perception radius, in debugger mode you can see the radius of the perception of the enemy
       context.save();
       context.strokeStyle = this.isPlayerInRange() ? "red" : "yellow";
       context.lineWidth = 2;
@@ -136,7 +249,6 @@ export default class Enemy extends GameEntity {
     const dx = playerCenterX - enemyCenterX;
     const dy = playerCenterY - enemyCenterY;
 
-    // Determine primary direction based on largest difference
     if (Math.abs(dx) > Math.abs(dy)) {
       return dx > 0 ? Direction.Right : Direction.Left;
     } else {
@@ -150,6 +262,7 @@ export default class Enemy extends GameEntity {
     stateMachine.add(EnemyStateName.Idling, new EnemyIdlingState(this));
     stateMachine.add(EnemyStateName.Walking, new EnemyWalkingState(this));
     stateMachine.add(EnemyStateName.Chasing, new EnemyChasingState(this));
+    stateMachine.add(EnemyStateName.Attacking, new EnemyAttackState(this));
 
     stateMachine.change(EnemyStateName.Idling);
     return stateMachine;
