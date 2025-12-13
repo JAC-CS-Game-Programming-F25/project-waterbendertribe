@@ -42,20 +42,22 @@ export default class VictoryState extends State {
 	}
 
 	render() {
-	images.render(ImageName.TitleScreenBackground, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-		context.font = '60px HungerGames';
+		images.render(ImageName.VictoryScreenBackground, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+		context.font = '60px hunger_games_font';
 		context.fillStyle = 'yellow';
 		context.textBaseline = 'middle';
 		context.textAlign = 'center';
-		context.fillText('YOU WON THE HUNGER CAT GAMES!!!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-		context.font = '30px HungerGames';
+		context.fillText('YOU WON THE ANNUAL HUNGER CAT GAMES!!!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
+		context.font = '35px hunger_games_font';
+		context.fillStyle = 'white';
+		context.fillText('But at what cost...', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40);
+		context.fillText('ENJOY THE VICTORY TOUR!!!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 100);
+		context.font = '30px hunger_games_font';
 		context.fillStyle = 'white';
 		context.fillText(
 			'press enter to replay',
 			CANVAS_WIDTH / 2,
 			CANVAS_HEIGHT - 80
 		);
-		context.font = '35px HungerGames';
-		context.fillStyle = 'gold';
 	}
 }

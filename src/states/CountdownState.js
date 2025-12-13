@@ -25,6 +25,11 @@ export default class CountdownState extends State {
 		this.map = playState && playState.mainMap ? playState.mainMap : null;
 		this.countdownTime = 3;
 		
+		// Position camera at player immediately
+		if (this.map && this.map.camera) {
+			this.map.camera.update(0);
+		}
+		
 		timer.addTask(
 			() => {
 				this.countdownTime -= 1;
@@ -60,3 +65,4 @@ export default class CountdownState extends State {
 		} 
 	}
 }
+

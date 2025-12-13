@@ -34,12 +34,14 @@ export default class GameOverState extends State {
 	}
 
 	render() {
-		context.font = '60px HungerGames';
+		context.fillStyle = 'black';
+		context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+		context.font = '60px hunger_games_font';
 		context.fillStyle = 'crimson';
 		context.textBaseline = 'middle';
 		context.textAlign = 'center';
 		context.fillText('Game Over', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-		context.font = '30px HungerGames';
+		context.font = '30px hunger_games_font';
 		context.fillStyle = 'white';
 		context.fillText(
 			'press enter to continue',

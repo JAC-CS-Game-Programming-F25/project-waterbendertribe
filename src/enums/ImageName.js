@@ -14,6 +14,7 @@ const ImageName = {
   Title: "title",
 
   TitleScreenBackground: "titlescreen_background",
+  VictoryScreenBackground: "victoryscreen_background",
 
   BlackCatWalking: "black_cat_walking",
   BlueCatWalking: "blue_cat_walking",

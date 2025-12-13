@@ -54,11 +54,17 @@
       "width": 474,
       "height": 266
     },
-     {
+    {
       "name": "titlescreen_background",
       "path": "./assets/images/R.png",
       "width": 480,
       "height": 352
+    },
+    {
+      "name": "victoryscreen_background",
+      "path": "./assets/images/Victor_Tour.png",
+      "width": 1346,
+      "height": 560
     },
     {
       "name": "black_cat_running",

@@ -33,6 +33,7 @@ export default class PlinkoBoard {
 
     this.createPegs();
     this.createBeams();
+    this.createBorders();
     this.createPowerUps();
     this.registerCollisionEvents();
   }
@@ -45,56 +46,45 @@ export default class PlinkoBoard {
   }
 
   render() {
-    // Perhaps add decore for the bow
     this.beams.forEach((beam) => beam.render());
     this.powerUps.forEach((powerUp) => powerUp.render());
     this.pegs.forEach((peg) => peg.render());
   }
 
   /**
-   * Create boundry you know this is chat cuzzz
+   * ball cant pass the sides of the map
    */
   createBorders() {
-    const wallThickness = 10;
+    const wallThickness = 40;
+    const halfThickness = wallThickness / 2;
 
     const walls = [
       Bodies.rectangle(
-        -wallThickness / 2,
+        -halfThickness,
         CANVAS_HEIGHT / 2,
         wallThickness,
         CANVAS_HEIGHT,
         {
           isStatic: true,
-          label: "wall",
-          restitution: 0.8,
+          label: "plinko-wall",
+          restitution: 0.9,
         }
       ),
       Bodies.rectangle(
-        CANVAS_WIDTH + wallThickness / 2,
+        CANVAS_WIDTH + halfThickness,
         CANVAS_HEIGHT / 2,
         wallThickness,
         CANVAS_HEIGHT,
         {
           isStatic: true,
-          label: "wall",
-          restitution: 0.8,
-        }
-      ),
-      Bodies.rectangle(
-        CANVAS_WIDTH / 2,
-        CANVAS_HEIGHT + wallThickness / 2,
-        CANVAS_WIDTH,
-        wallThickness,
-        {
-          isStatic: true,
-          label: "wall",
+          label: "plinko-wall",
+          restitution: 0.9,
         }
       ),
     ];
 
     Composite.add(world, walls);
   }
-
   createPegs() {
     const pegRows = [
       { row: -1, cols: 7, offset: 0 },
@@ -235,6 +225,13 @@ export default class PlinkoBoard {
 
   handleBallPowerUpCollision(ballBody, powerUpBody) {
     const powerUpObj = powerUpBody?.entity || powerUpBody?.gameObject;
+    const ballObj = ballBody?.entity;
+
+    // Mark that ball hit a power-up
+    if (ballObj) {
+      ballObj.hitPowerUp = true;
+      console.log("Ball hit power-up, hitPowerUp set to true");
+    }
 
     if (powerUpObj && typeof powerUpObj.onConsume === "function") {
       powerUpObj.onConsume();

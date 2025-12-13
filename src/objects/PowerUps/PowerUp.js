@@ -1,11 +1,6 @@
-import Vector from "../../../lib/Vector.js";
-import GameObject from "../GameObject.js";
-import Hitbox from "../../../lib/Hitbox.js";
-import Sprite from "../../../lib/Sprite.js";
 import { matter, world, images, context, DEBUG } from "../../globals.js";
 import BodyType from "../../enums/BodyType.js";
 import Rectangle from "../Rectangle.js";
-import GameMatter from "../GameMatter.js";
 
 export default class PowerUp extends Rectangle {
   	static WIDTH = 35;
@@ -23,9 +18,8 @@ export default class PowerUp extends Rectangle {
     this.body.entity = this;
     this.body.gameObject = this;
 
-
-	this.isConsumable = true;
-	this.wasConsumed = false;
+    this.isConsumable = true;
+    this.wasConsumed = false;
 
     // Center sprite and hitbox around body origin
     this.renderOffset = {
