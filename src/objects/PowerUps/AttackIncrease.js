@@ -30,7 +30,7 @@ export default class AttackIncreasePowerUp extends PowerUp {
         0,
         AttackIncreasePowerUp.DURATION,
         () => {
-          player.strength = Math.max(0, player.strength - AttackIncreasePowerUp.INCREASE);
+          player.strength = Math.max(0, player.strength - AttackIncreasePowerUp.STRENGTH_INCREASE);
         }
       );
     }

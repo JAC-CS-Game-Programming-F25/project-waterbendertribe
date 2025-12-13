@@ -1,7 +1,9 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
 import PlinkoBoard from "../services/PlinkoMap.js";
-import { input, setCanvasSize, context } from "../globals.js";
+import { input, setCanvasSize, context, stateMachine, DEBUG } from "../globals.js";
+import SaveManager from "../services/SaveManager.js";
+import GameStateName from "../enums/GameStateName.js";
 import PlinkoLevel from "../objects/PlinkoLevel.js";
 import PlinkoState from "./PlinkoState.js";
 
@@ -16,6 +18,17 @@ export default class PlayState extends State {
 
     // Create the main map once and keep it alive to preserve state (e.g., balls)
     this.mainMap = new Map(this.mainMapDefinition, this);
+    this.mainMap.wins = SaveManager.loadWins();
+    this.map = this.mainMap;
+    this.currentMapName = "map";
+  }
+
+  resetMainMap() {
+    const savedWins = this.mainMap?.wins ?? 0;
+    this.mainMap = new Map(this.mainMapDefinition, this);
+    this.mainMap.wins = savedWins;
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    setCanvasSize(1920, 960);
     this.map = this.mainMap;
     this.currentMapName = "map";
   }
@@ -41,29 +54,37 @@ export default class PlayState extends State {
 
   update(dt) {
     this.map.update(dt);
-    if (input.isKeyPressed("m")) {
-      this.switchMap("map");
+    
+    if(DEBUG){
+      if (input.isKeyPressed("m")) {
+            this.switchMap("map");
+          }
+        if (input.isKeyPressed("p")) {
+            this.switchMap("PlinkoMap");
+          }
     }
-    if (input.isKeyPressed("p")) {
-      this.switchMap("PlinkoMap");
-    }
-
-    //this.checkWinOrLose();
+   
+    this.checkWinOrLose();
   }
 
   render() {
     this.map.render();
   }
 
-  // checkWinOrLose() {
-	// 	if (this.level.didWin()) {
-	// 		stateMachine.change(GameStateName.Victory, {
-	// 			background: this.level.background
-	// 		});
-	// 	} else if (this.level.didLose()) {
-	// 		stateMachine.change(GameStateName.GameOver, {
-	// 			background: this.level.background,
-	// 		});
-	// 	}
-	// }
+  checkWinOrLose() {
+    if (this.currentMapName === "map" && this.mainMap) {
+    if (this.mainMap.didWin()) {
+      stateMachine.change(GameStateName.Transition, {
+        fromState: this,
+        toState: stateMachine.states[GameStateName.Victory],
+      });
+    } else if (this.mainMap.didLose()) {
+      stateMachine.change(GameStateName.Transition, {
+        fromState: this,
+        toState: stateMachine.states[GameStateName.GameOver],
+      });
+    }
+  }
 }
+}
+

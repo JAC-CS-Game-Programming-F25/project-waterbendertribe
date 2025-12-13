@@ -22,9 +22,11 @@ import UserInterface from "./UserInterface.js";
 
 export default class Map {
   constructor(mapDefinition, playState = null) {
+    this.mapDefinition = mapDefinition;
     this.width = mapDefinition.width;
     this.height = mapDefinition.height;
     this.playState = playState;
+    this.wins = 0;
 
     const sprites = Sprite.generateSpritesFromSpriteSheet(
       images.get(ImageName.Tiles),
@@ -68,10 +70,10 @@ export default class Map {
 
     const spawnPositions = [
       new Vector(10, 10),
-      new Vector(15, 5),
-      new Vector(5, 15),
-      new Vector(25, 25),
-      new Vector(20, 15),
+      // new Vector(15, 5),
+      // new Vector(5, 15),
+      // new Vector(25, 25),
+      // new Vector(20, 15),
     ];
 
     spawnPositions.forEach((position) => {
@@ -172,6 +174,16 @@ export default class Map {
       }
     });
   }
+
+
+  didWin() {
+		return this.enemies.length === 0;
+	}
+
+	didLose() {
+    return this.player?.isDead && this.enemies.length > 0;
+	}
+
 
   /**
    * Clean up dead entities and consumed items (Zelda-style)

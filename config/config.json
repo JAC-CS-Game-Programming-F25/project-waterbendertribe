@@ -51,6 +51,12 @@
     {
       "name": "plinko_background",
       "path": "./assets/images/plinko/backg.png",
+      "width": 474,
+      "height": 266
+    },
+     {
+      "name": "titlescreen_background",
+      "path": "./assets/images/R.png",
       "width": 480,
       "height": 352
     },
@@ -145,6 +151,12 @@
       "path": "./assets/sounds/effects/player-bump.ogg",
       "size": 1,
       "volume": 0.2
+    }
+  ],
+  "fonts": [
+    {
+      "name": "hunger_games_font",
+      "path": "./assets/fonts/HungerGames.ttf"
     }
   ]
 }
