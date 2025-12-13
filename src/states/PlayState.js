@@ -14,7 +14,9 @@ export default class PlayState extends State {
     this.mainMapDefinition = mainMapDefinition;
     this.plinkoMapDefinition = plinkoMapDefinition;
 
-    this.map = new Map(mainMapDefinition, this);
+    // Create the main map once and keep it alive to preserve state (e.g., balls)
+    this.mainMap = new Map(this.mainMapDefinition, this);
+    this.map = this.mainMap;
     this.currentMapName = "map";
   }
 
@@ -23,9 +25,11 @@ export default class PlayState extends State {
     if (mapName === "map" && this.currentMapName !== "map") {
       context.setTransform(1, 0, 0, 1, 0, 0); //reset canvas transform before switching
       setCanvasSize(1920, 960);
-      this.map = new Map(this.mainMapDefinition, this);
+      //keep the existing main map instance to keep prior balls and state
+      this.map = this.mainMap;
       this.currentMapName = "map";
       console.log("Switched to Main Map");
+      
     } else if (mapName === "PlinkoMap" && this.currentMapName !== "PlinkoMap") {
       context.setTransform(1, 0, 0, 1, 0, 0);
       setCanvasSize(480, 352);
