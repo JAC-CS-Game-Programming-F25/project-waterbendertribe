@@ -25,6 +25,8 @@ import PlayState from "./states/PlayState.js";
 import GameOverState from "./states/GameOverState.js";
 import VictoryState from "./states/VictoryState.js";
 import TitleScreenState from "./states/TitleScreenState.js";
+import TransitionState from "./states/TransitionState.js";
+import CountdownState from "./states/CountdownState.js";
 
 // Set the dimensions of the play area.
 canvas.width = CANVAS_WIDTH;
@@ -37,7 +39,7 @@ document.body.appendChild(canvas);
 // Fetch the asset definitions from config.json.
 const {
   images: imageDefinitions,
-  // fonts: fontDefinitions,
+  fonts: fontDefinitions,
   sounds: soundDefinitions,
 } = await fetch("../config/config.json").then((response) => response.json());
 
@@ -52,20 +54,23 @@ const plinkoMapDefinition = await fetch("../config/PlinkoMap.json").then(
 
 // Load all the assets from their definitions.
 images.load(imageDefinitions);
-// fonts.load(fontDefinitions);
+fonts.load(fontDefinitions);
 sounds.load(soundDefinitions);
 
 // Add all the states to the state machine.
 stateMachine.add(GameStateName.TitleScreen, new TitleScreenState());
 stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
+stateMachine.add(GameStateName.Transition, new TransitionState());
+stateMachine.add(GameStateName.Countdown, new CountdownState());
+
 //stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));io
 stateMachine.add(
   GameStateName.Play,
   new PlayState(mainMapDefinition, plinkoMapDefinition)
 );
 
-stateMachine.change(GameStateName.Play);
+stateMachine.change(GameStateName.TitleScreen);
 
 const game = new Game(
   stateMachine,

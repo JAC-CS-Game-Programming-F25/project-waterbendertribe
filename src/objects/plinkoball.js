@@ -18,8 +18,8 @@ export default class PlinkoBall extends Circle {
     super(x, y, PlinkoBall.RADIUS, {
       label: BodyType.CatBall,
       density: 0.1,
-      restitution: 0.8,
-      friction: 0.1,
+      restitution: 0.95,
+      friction: 0.05,
       collisionFilter: {
         group: -1,
       },
@@ -34,6 +34,8 @@ export default class PlinkoBall extends Circle {
     this.renderOffset = { x: -17, y: -20 };
 
     this.hasScored = false;
+    this.hitPowerUp = false;
+    this.transitionedToMain = false;
 
     // Add slight random initial velocity
     const randomVelocity = (Math.random() - 0.5) * 2;
@@ -41,8 +43,18 @@ export default class PlinkoBall extends Circle {
   }
 
   update(dt) {
-    // Check if ball fell off screen
+
+    //check if ball fell off screen
     if (this.didFallOffBottom()) {
+      console.log("Ball fell off bottom. hitPowerUp:", this.hitPowerUp);
+
+      if (!this.hitPowerUp && !this.transitionedToMain) { //return to main map
+
+        this.transitionedToMain = true;
+        if (this.level) {
+          this.level.returnToMainMap = true;
+        }
+      }
       this.shouldCleanUp = true;
     }
 

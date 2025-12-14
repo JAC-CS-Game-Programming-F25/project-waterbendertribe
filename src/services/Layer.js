@@ -2,8 +2,9 @@ import Tile from "./Tile.js";
 
 export default class Layer {
   static BOTTOM = 0;
-  static COLLISION = 1;
-  static TOP = 2;
+  static BOTTOM_TWO = 1;
+  static COLLISION = 2;
+  static TOP = 3;
 
   /**
    * A collection of tiles that comprises

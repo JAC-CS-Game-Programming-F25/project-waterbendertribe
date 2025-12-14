@@ -29,7 +29,7 @@ export function setCanvasSize(width, height) {
   canvas.height = height;
   
   context.setTransform(1, 0, 0, 1, 0, 0); //reset the context state when canvas size changes
-  context.imageSmoothingEnabled = false; //maintain pixel art quality
+  context.imageSmoothingEnabled = false; //maintain pixel
   
   resizeCanvas();
 }
@@ -48,7 +48,7 @@ export const timer = new Timer();
 export const input = new Input(canvas);
 export const sounds = new Sounds();
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 export const matter = Matter;
 export const engine = matter.Engine.create({

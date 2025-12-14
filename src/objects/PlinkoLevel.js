@@ -20,10 +20,12 @@ export default class PlinkoLevel {
     this.playState = playState;
     this.board = new PlinkoBoard(playState);
     this.background = new Background();
-    
+
     this.balls = [];
     this.score = 0;
     this.canDropBall = true;
+    this.returnToMainMap = false;
+    this.hasTransitioned = false;
 
     this.spawnY = 20;
 
@@ -62,6 +64,15 @@ export default class PlinkoLevel {
     //Clean up balls that fell off screen
     this.balls = this.balls.filter((ball) => !ball.shouldCleanUp);
 
+    //return to main map
+    if (this.returnToMainMap && !this.hasTransitioned) {
+      this.hasTransitioned = true;
+      if (this.playState && typeof this.playState.switchMap === "function") {
+        this.playState.switchMap("map");
+      }
+      return;
+    }
+
     // if no ball and no ready ball then spawn a new one
     if (this.balls.length === 0 && !this.readyBall) {
       this.canDropBall = true;
@@ -71,10 +82,6 @@ export default class PlinkoLevel {
     // Drop with Enter
     if (input.isKeyPressed("Enter") && this.readyBall && this.canDropBall) {
       this.dropBall();
-    }
-
-    if (input.isKeyPressed("Escape")) {
-      stateMachine.change(GameStateName.Play);
     }
   }
 
@@ -146,4 +153,3 @@ export default class PlinkoLevel {
     this.canDropBall = false;
   }
 }
-
