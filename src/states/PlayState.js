@@ -1,11 +1,12 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
 import PlinkoBoard from "../services/PlinkoMap.js";
-import { input, setCanvasSize, context, stateMachine, DEBUG } from "../globals.js";
+import { input, setCanvasSize, context, stateMachine, DEBUG, sounds} from "../globals.js";
 import SaveManager from "../services/SaveManager.js";
 import GameStateName from "../enums/GameStateName.js";
 import PlinkoLevel from "../objects/PlinkoLevel.js";
 import PlinkoState from "./PlinkoState.js";
+import SoundName from '../enums/SoundName.js';
 
 /**
  * currently allows to switch between maps this is temporary
@@ -21,6 +22,12 @@ export default class PlayState extends State {
     this.mainMap.wins = SaveManager.loadWins();
     this.map = this.mainMap;
     this.currentMapName = "map";
+  }
+
+  enter(parameters = {}) {
+    if (parameters.targetMap) {
+      this.switchMap(parameters.targetMap);
+    }
   }
 
   resetMainMap() {
@@ -52,9 +59,17 @@ export default class PlayState extends State {
     }
   }
 
+  switchMapWithTransition(mapName) {
+    stateMachine.change(GameStateName.Transition, {
+      fromState: this,
+      toState: this,
+      toStateEnterParameters: { targetMap: mapName },
+    });
+  }
+
   update(dt) {
+    sounds.play(SoundName.Panem);
     this.map.update(dt);
-    
     if(DEBUG){
       if (input.isKeyPressed("m")) {
             this.switchMap("map");

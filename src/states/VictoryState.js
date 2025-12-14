@@ -23,6 +23,7 @@ export default class VictoryState extends State {
 
 	enter() {
 		//get wins
+		sounds.stop(SoundName.Panem);
 		const playState = stateMachine.states[GameStateName.Play];
 
 		if (playState && playState.mainMap) {
@@ -33,8 +34,9 @@ export default class VictoryState extends State {
 	}
 
 	update() {
-		
+		sounds.play(SoundName.HangingTree);
 		if (input.isKeyPressed(Input.KEYS.ENTER)) {
+			sounds.stop(SoundName.HangingTree);
 			stateMachine.change(GameStateName.Transition, {
 				fromState: this,
 				toState: stateMachine.states[GameStateName.TitleScreen],

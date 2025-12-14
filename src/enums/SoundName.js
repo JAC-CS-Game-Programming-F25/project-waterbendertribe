@@ -3,7 +3,8 @@ const SoundName = {
 	Intro: 'intro',
 	HangingTree: "hanging_tree",
 	Whistle: "whistle",
-	PlayerBump: "player-bump"
+	PlayerBump: "player-bump",
+	Panem: "panem"
 
 	// // Music
 	// BattleStart: 'battle-start',
