@@ -2,7 +2,6 @@ import DefencePowerUp from "../objects/PowerUps/Defence.js";
 import SpeedPowerUp from "../objects/PowerUps/Speed.js";
 import AttackIncreasePowerUp from "../objects/PowerUps/AttackIncrease.js";
 import PowerUpType from "../enums/PowerUpType.js";
-import PowerUp from "../objects/PowerUps/PowerUp.js";
 
 export default class PowerUpFactory {
 	/**

@@ -2,7 +2,6 @@ import Sprite from "../../lib/Sprite.js";
 import Player from "../entities/player/Player.js";
 import ImageName from "../enums/ImageName.js";
 import { images } from "../globals.js";
-import Tile from "./Tile.js";
 import { context } from "../globals.js";
 
 export default class UserInterface {

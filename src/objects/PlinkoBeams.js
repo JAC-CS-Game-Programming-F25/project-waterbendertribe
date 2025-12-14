@@ -3,6 +3,11 @@ import { matter, context, DEBUG } from "../globals.js";
 import GameMatter from "./GameMatter.js";
 import Rectangle from "./Rectangle.js";
 
+/**
+ * PlinkoBeam displays static vertical beams.
+ *
+ * Creates a static Matter.js rectangle body labeled `Beam`
+ */
 export default class PlinkoBeam extends Rectangle {
   static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 15, height: 128 }];
   static WIDTH = 13;
@@ -15,6 +20,7 @@ export default class PlinkoBeam extends Rectangle {
       restitution: 0.1,
       friction: 0.3,
     });
+    
     const spriteSheet = "beam_sheet";
 
     this.sprites = GameMatter.generateSprites(
@@ -22,11 +28,11 @@ export default class PlinkoBeam extends Rectangle {
       spriteSheet
     );
 
+    // Center sprite rendering on physics body position
     this.renderOffset = {
       x: -PlinkoBeam.WIDTH / 2,
       y: -PlinkoBeam.HEIGHT / 2,
     };
-
   }
 
   update(dt) {
@@ -40,23 +46,23 @@ export default class PlinkoBeam extends Rectangle {
     context.translate(this.body.position.x, this.body.position.y);
     context.rotate(this.body.angle);
 
+    // Draw the current frame at the offset to align with the body
     this.sprites[this.currentFrame].render(
       this.renderOffset.x,
       this.renderOffset.y
     );
 
-    if(DEBUG){
-    context.lineWidth = 2;
-    context.strokeStyle = "blue";
-    context.strokeRect(
-      this.renderOffset.x,
-      this.renderOffset.y,
-      this.width,
-      this.height
-    );
+    if (DEBUG) {
+      context.lineWidth = 2;
+      context.strokeStyle = "blue";
+      context.strokeRect(
+        this.renderOffset.x,
+        this.renderOffset.y,
+        this.width,
+        this.height
+      );
     }
 
     context.restore();
   }
 }
-

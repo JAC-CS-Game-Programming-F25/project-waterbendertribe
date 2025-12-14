@@ -1,6 +1,5 @@
 import Vector from "../../lib/Vector.js";
 import Hitbox from "../../lib/Hitbox.js";
-import Direction from "../enums/Direction.js";
 import { context, DEBUG } from "../globals.js";
 
 export default class GameObject {
@@ -54,7 +53,6 @@ export default class GameObject {
 		this.wasConsumed = true;
 		this.cleanUp = true;
 
-		//switch to plinko map via the map instance
 		if (this.map.switchMap) {
 			this.map.switchMap("map");
 		}

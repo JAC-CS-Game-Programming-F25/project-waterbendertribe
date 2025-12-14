@@ -27,7 +27,7 @@ export default class PlinkoLevel {
     this.returnToMainMap = false;
     this.hasTransitioned = false;
     this.elapsedTime = 0;
-    this.maxDuration = 30; // Return to main map after 30 seconds if nothing happens
+    this.maxDuration = 10; //return to main map after 10 seconds if nothing happens
 
     this.spawnY = 20;
 
@@ -56,7 +56,7 @@ export default class PlinkoLevel {
     this.board.update(dt);
     this.elapsedTime += dt;
 
-    // if too much time has passed without action, return to main map
+    //if too much time has passed without anything happening, return to main map
     if (this.elapsedTime > this.maxDuration && !this.hasTransitioned) {
       this.hasTransitioned = true;
       stateMachine.change(GameStateName.Play, { restoreMap: true });

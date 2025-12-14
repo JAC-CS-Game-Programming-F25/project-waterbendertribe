@@ -1,6 +1,10 @@
 export default class SaveManager {
 	static WINS_KEY = 'hunger-cats-wins';
 
+	/**
+	 * Save the total wins to `localStorage`.
+	 * @param {number} wins - The player's total victories.
+	 */
 	static saveWins(wins) {
 		try {
 			localStorage.setItem(SaveManager.WINS_KEY, JSON.stringify({ wins }));
@@ -9,6 +13,10 @@ export default class SaveManager {
 		}
 	}
 
+	/**
+	 * Load the total wins from `localStorage`.
+	 * @returns {number} The player's total victories, or 0 if unavailable.
+	 */
 	static loadWins() {
 		try {
 			const data = localStorage.getItem(SaveManager.WINS_KEY);

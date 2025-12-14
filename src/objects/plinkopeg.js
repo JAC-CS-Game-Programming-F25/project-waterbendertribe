@@ -36,37 +36,9 @@ export default class PlinkoPeg extends Circle {
     };
 
     this.currentFrame = 0;
-    this.flashTimer = 0;
-    this.isFlashing = false;
   }
 
   update(dt) {
     super.update(dt);
-
-    // Handle flash effect
-    if (this.isFlashing) {
-      this.flashTimer -= dt;
-      if (this.flashTimer <= 0) {
-        this.isFlashing = false;
-        this.currentFrame = 0;
-      }
-    }
   }
-
-  // render() {
-  //   // Render full-size pig sprite
-  //   if (!this.sprites || !this.sprites[this.currentFrame]) return;
-
-  //   context.save();
-  //   context.translate(this.body.position.x, this.body.position.y);
-  //   context.rotate(this.body.angle);
-
-  //   // Render full-size sprite centered on collision circle
-  //   this.sprites[this.currentFrame].render(
-  //     this.renderOffset.x,
-  //     this.renderOffset.y
-  //   );
-
-  //   context.restore();
-  // }
 }

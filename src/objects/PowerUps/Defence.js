@@ -4,22 +4,30 @@ import GameMatter from "../GameMatter.js";
 import { timer } from "../../globals.js";
 import GameStateName from "../../enums/GameStateName.js";
 
+/**
+ * Apply a defence boost to the player for 10 seconds.
+ *
+ * Increases `player.defense` by 1
+ */
 export default class DefencePowerUp extends PowerUp {
-	static SPRITE_MEASUREMENTS = [{ x: 64, y: 0, width: 32, height: 32}];
+  static SPRITE_MEASUREMENTS = [{ x: 64, y: 0, width: 32, height: 32 }];
 
-	constructor(x, y) {
-		super(x, y);
+  constructor(x, y) {
+    super(x, y);
 
-		const spriteSheet = "power_up_sheet";
-		this.sprites = GameMatter.generateSprites(DefencePowerUp.SPRITE_MEASUREMENTS, spriteSheet);	
-	}
+    const spriteSheet = "power_up_sheet";
+    this.sprites = GameMatter.generateSprites(
+      DefencePowerUp.SPRITE_MEASUREMENTS,
+      spriteSheet
+    );
+  }
 
   onConsume() {
+    const playState =
+      this.plinkoState?.constructor?.name === "PlinkoState"
+        ? stateMachine.states[GameStateName.Play]
+        : this.plinkoState;
 
-	const playState = this.plinkoState?.constructor?.name === 'PlinkoState' 
-      ? stateMachine.states[GameStateName.Play] 
-      : this.plinkoState;
-    
     const player = playState?.map?.player;
 
     if (player) {
@@ -37,5 +45,4 @@ export default class DefencePowerUp extends PowerUp {
 
     super.onConsume();
   }
-
 }

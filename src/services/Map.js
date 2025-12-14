@@ -1,4 +1,3 @@
-import Colour from "../enums/Colour.js";
 import Sprite from "../../lib/Sprite.js";
 import ImageName from "../enums/ImageName.js";
 import Tile from "./Tile.js";
@@ -12,15 +11,20 @@ import {
   images,
   engine,
   matter,
-  world,
 } from "../globals.js";
 import Vector from "../../lib/Vector.js";
 import Player from "../entities/player/Player.js";
 import EnemyFactory from "./EnemyFactory.js";
-import Direction from "../enums/Direction.js";
 import Ball from "../objects/Ball.js";
 import UserInterface from "./UserInterface.js";
 
+/**
+ * Map: creates tile layers, camera, entities, collisions, and rendering for the main world.
+ *
+ * Loads and renders layered tile map (`bottom`, `bottomTwo`, `collision`, `top`).
+ * Manages player, enemies, collectibles (balls), UI, and camera following.
+ * Checks win/lose
+ */
 export default class Map {
   constructor(mapDefinition, playState = null) {
     this.mapDefinition = mapDefinition;
@@ -37,10 +41,7 @@ export default class Map {
 
     this.bottomLayer = new Layer(mapDefinition.layers[Layer.BOTTOM], sprites);
     this.bottomLayerTwo = new Layer(mapDefinition.layers[Layer.BOTTOM_TWO], sprites);
-    this.collisionLayer = new Layer(
-      mapDefinition.layers[Layer.COLLISION],
-      sprites
-    );
+    this.collisionLayer = new Layer(mapDefinition.layers[Layer.COLLISION], sprites);
     this.topLayer = new Layer(mapDefinition.layers[Layer.TOP], sprites);
 
     // Create player
@@ -55,11 +56,8 @@ export default class Map {
       this.height * Tile.SIZE
     );
 
-    // Game objects
     this.balls = [];
     this.spawnRandomBalls(5);
-
-    // Create enemies using factory
     this.enemies = this.createEnemies();
   }
 
@@ -128,7 +126,6 @@ export default class Map {
     this.player.update(dt);
     this.camera.update(dt);
 
-    // Zelda collsiion
     this.updateCollision(dt);
     this.updateEntities(dt);
 
@@ -160,6 +157,11 @@ export default class Map {
     });
   }
 
+  /**
+   * Apply damage from `attacker` to `receiver` with defense reduction.
+   *
+   * Damage formula: max((attacker.strength + 1) - receiver.defense, 1)
+   */
   handleDamage(attacker, receiver) {
     attacker.deactivateClawHitbox();
 
@@ -211,32 +213,26 @@ export default class Map {
     this.balls = this.balls.filter((ball) => !ball.cleanUp);
   }
 
+  /**
+   * Render the map layers, entities, UI, and optional debug grid.
+   */
   render() {
     if (this.useCamera) {
       this.camera.applyTransform(context);
     }
 
-    // Render bottom layer
     this.bottomLayer.render();
     this.bottomLayerTwo.render();
 
-    this.collisionLayer.render(); // Collision layer
+    this.collisionLayer.render(); 
     this.enemies.forEach((enemy) => {
       enemy.render();
     });
 
-    // Render balls
     this.balls.forEach((ball) => ball.render());
-
-    // Render player
     this.player.render();
 
-    // Render top layer (trees, etc. that appear above player)
     this.topLayer.render();
-
-    if (this.squishyCat) {
-      this.squishyCat.render(context);
-    }
 
     if (DEBUG) {
       Map.renderGrid();

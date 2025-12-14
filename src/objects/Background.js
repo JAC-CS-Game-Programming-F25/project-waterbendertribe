@@ -1,7 +1,10 @@
 import Sprite from "../../lib/Sprite.js";
 import ImageName from "../enums/ImageName.js";
-import { CANVAS_HEIGHT, CANVAS_WIDTH, images } from "../globals.js";
+import { CANVAS_HEIGHT, images } from "../globals.js";
 
+/**
+ * Background renders the Plinko board backdrop.
+ */
 export default class Background {
   static WIDTH = 480;
   static HEIGHT = 352;

@@ -31,7 +31,7 @@ export default class PlinkoBoard {
     this.powerUps = [];
     this.playState = playState;
 
-    //this.createPegs();
+    this.createPegs();
     this.createBeams();
     this.createBorders();
     this.createPowerUps();
@@ -84,28 +84,29 @@ export default class PlinkoBoard {
 
     Composite.add(world, walls);
   }
-  // createPegs() {
-  //   const pegRows = [
-  //     { row: -1, cols: 7, offset: 0 },
-  //     { row: 1, cols: 7, offset: 1 },
-  //     { row: 3, cols: 7, offset: 0 },
-  //     { row: 5, cols: 7, offset: 1 },
-  //   ];
 
-  //   pegRows.forEach((config) => {
-  //     const spacing = (this.gridCols - 1) / (config.cols + 1);
+  createPegs() {
+    const pegRows = [
+      { row: -1, cols: 7, offset: 0 },
+      { row: 1, cols: 7, offset: 1 },
+      { row: 3, cols: 7, offset: 0 },
+      { row: 5, cols: 7, offset: 1 },
+    ];
 
-  //     for (let col = 0; col < config.cols; col++) {
-  //       const x =
-  //         PlinkoBoard.GRID_SIZE *
-  //         ((col + 1) * spacing + (config.offset * spacing) / 2);
-  //       const y = PlinkoBoard.GRID_SIZE * (config.row + 3);
+    pegRows.forEach((config) => {
+      const spacing = (this.gridCols - 1) / (config.cols + 1);
 
-  //       const peg = new PlinkoPeg(x, y);
-  //       this.pegs.push(peg);
-  //     }
-  //   });
-  // }
+      for (let col = 0; col < config.cols; col++) {
+        const x =
+          PlinkoBoard.GRID_SIZE *
+          ((col + 1) * spacing + (config.offset * spacing) / 2);
+        const y = PlinkoBoard.GRID_SIZE * (config.row + 3);
+
+        const peg = new PlinkoPeg(x, y);
+        this.pegs.push(peg);
+      }
+    });
+  }
 
   createPowerUps() {
     const types = [
@@ -114,33 +115,30 @@ export default class PlinkoBoard {
       PowerUpType.DefencePowerUp
     ];
 
-    // Place power-ups between beams
+    //place power-ups between beams
     if (this.beams.length >= 2) {
       this.beams.slice(0, -1).forEach((left, i) => {
         const right = this.beams[i + 1];
         
-        // Calculate desired center position between beams
+        //center position between beams
         const centerX = (left.body.position.x + right.body.position.x) / 2;
         const centerY = Math.min(left.body.position.y, right.body.position.y) - 40;
 
-        // Rectangle constructor expects top-left; convert from center
         const x = centerX - PowerUp.WIDTH / 2;
         const y = centerY - PowerUp.HEIGHT / 2;
 
-        // Assign each power-up type
         const type = types[i];
 
-        // Create power-up using factory
         const powerUp = PowerUpFactory.createInstance(type, x, y);
+        
         if (powerUp) {
-          // Pass the PlinkoState reference for transitions
+          //pass the PlinkoState reference for transitions
           powerUp.plinkoState = this.playState;
           this.powerUps.push(powerUp);
         }
       });
     }
   }
-
 
   createBeams() {
     const beamDisplayed = 4;

@@ -43,12 +43,12 @@ export default class PlinkoBall extends Circle {
   }
 
   update(dt) {
-
     //check if ball fell off screen
     if (this.didFallOffBottom()) {
       console.log("Ball fell off bottom. hitPowerUp:", this.hitPowerUp);
 
-      if (!this.hitPowerUp && !this.transitionedToMain) { //return to main map
+      if (!this.hitPowerUp && !this.transitionedToMain) {
+        //return to main map
 
         this.transitionedToMain = true;
         if (this.level) {
