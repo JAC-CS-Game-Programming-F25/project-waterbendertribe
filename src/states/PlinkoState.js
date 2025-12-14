@@ -44,10 +44,8 @@ export default class PlinkoState extends State {
    * Return to main map 
    */
   returnToMainMap() {
-    stateMachine.change(GameStateName.Transition, {
-      fromState: this,
-      toState: stateMachine.states[GameStateName.Play],
-      toStateEnterParameters: { restoreMap: true }, //go to existing playState map
+    stateMachine.change(GameStateName.Play, {
+      restoreMap: true 
     });
   }
 

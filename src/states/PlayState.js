@@ -24,7 +24,7 @@ export default class PlayState extends State {
       // Check if map has won or lost, if so reset it
       if (this.map.didWin() || this.map.didLose()) {
         this.resetMap();
-        console.log("Reset Main Map due to win/loss");
+        console.log("Reset Main Map after win or loss");
       } else {
         console.log("Restored Main Map with existing state");
       }
@@ -44,10 +44,7 @@ export default class PlayState extends State {
    * go to Plinko state
    */
   goToPlinko() {
-    stateMachine.change(GameStateName.Transition, {
-      fromState: this,
-      toState: stateMachine.states[GameStateName.Plinko],
-    });
+    stateMachine.change(GameStateName.Plinko);
   }
 
   /**
