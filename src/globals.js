@@ -48,7 +48,7 @@ export const timer = new Timer();
 export const input = new Input(canvas);
 export const sounds = new Sounds();
 
-export const DEBUG = false;
+export const DEBUG = true;
 
 export const matter = Matter;
 export const engine = matter.Engine.create({

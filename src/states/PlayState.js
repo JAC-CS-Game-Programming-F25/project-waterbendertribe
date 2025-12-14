@@ -1,90 +1,96 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
-import PlinkoBoard from "../services/PlinkoMap.js";
-import { input, setCanvasSize, context, stateMachine, DEBUG } from "../globals.js";
+import { input, setCanvasSize, context, stateMachine, DEBUG, sounds } from "../globals.js";
 import SaveManager from "../services/SaveManager.js";
 import GameStateName from "../enums/GameStateName.js";
-import PlinkoLevel from "../objects/PlinkoLevel.js";
-import PlinkoState from "./PlinkoState.js";
+import SoundName from '../enums/SoundName.js';
 
 /**
- * currently allows to switch between maps this is temporary
+ * Main play state
  */
 export default class PlayState extends State {
-  constructor(mainMapDefinition, plinkoMapDefinition) {
+  constructor(mainMapDefinition) {
     super();
     this.mainMapDefinition = mainMapDefinition;
-    this.plinkoMapDefinition = plinkoMapDefinition;
-
-    // Create the main map once and keep it alive to preserve state (e.g., balls)
-    this.mainMap = new Map(this.mainMapDefinition, this);
-    this.mainMap.wins = SaveManager.loadWins();
-    this.map = this.mainMap;
-    this.currentMapName = "map";
+    this.map = null;
   }
 
-  resetMainMap() {
-    const savedWins = this.mainMap?.wins ?? 0;
-    this.mainMap = new Map(this.mainMapDefinition, this);
-    this.mainMap.wins = savedWins;
+  enter(parameters = {}) {
+
     context.setTransform(1, 0, 0, 1, 0, 0);
     setCanvasSize(1920, 960);
-    this.map = this.mainMap;
-    this.currentMapName = "map";
-  }
-
-  //switch to a different map temp
-  switchMap(mapName) {
-    if (mapName === "map" && this.currentMapName !== "map") {
-      context.setTransform(1, 0, 0, 1, 0, 0); //reset canvas transform before switching
-      setCanvasSize(1920, 960);
-      //keep the existing main map instance to keep prior balls and state
-      this.map = this.mainMap;
-      this.currentMapName = "map";
-      console.log("Switched to Main Map");
-      
-    } else if (mapName === "PlinkoMap" && this.currentMapName !== "PlinkoMap") {
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      setCanvasSize(480, 352);
-      this.map = new PlinkoState(this);
-      this.currentMapName = "PlinkoMap";
-      console.log("Switched to Plinko Map");
+    
+    if (parameters.restoreMap && this.map) {
+      // Check if map has won or lost, if so reset it
+      if (this.map.didWin() || this.map.didLose()) {
+        this.resetMap();
+        console.log("Reset Main Map after win or loss");
+      } else {
+        console.log("Restored Main Map with existing state");
+      }
+    } else {
+      //create new map
+      this.map = new Map(this.mainMapDefinition, this);
+      this.map.wins = SaveManager.loadWins();
+      console.log("Created new Main Map");
     }
   }
 
+  exit() {
+    console.log("Exiting Main Map");
+  }
+
+  /**
+   * go to Plinko state
+   */
+  goToPlinko() {
+    stateMachine.change(GameStateName.Plinko);
+  }
+
+  /**
+   * Reset the main map 
+   */
+  resetMap() {
+    const savedWins = this.map?.wins ?? 0;
+    this.map = new Map(this.mainMapDefinition, this);
+    this.map.wins = savedWins;
+  }
+
   update(dt) {
-    this.map.update(dt);
+    sounds.play(SoundName.Panem);
     
-    if(DEBUG){
-      if (input.isKeyPressed("m")) {
-            this.switchMap("map");
-          }
-        if (input.isKeyPressed("p")) {
-            this.switchMap("PlinkoMap");
-          }
+    if (this.map) {
+      this.map.update(dt);
+    }
+  
+    if (DEBUG) {
+      if (input.isKeyPressed("p")) {
+        this.goToPlinko();
+      }
     }
    
     this.checkWinOrLose();
   }
 
   render() {
-    this.map.render();
+    if (this.map) {
+      this.map.render();
+    }
   }
 
   checkWinOrLose() {
-    if (this.currentMapName === "map" && this.mainMap) {
-    if (this.mainMap.didWin()) {
-      stateMachine.change(GameStateName.Transition, {
-        fromState: this,
-        toState: stateMachine.states[GameStateName.Victory],
-      });
-    } else if (this.mainMap.didLose()) {
-      stateMachine.change(GameStateName.Transition, {
-        fromState: this,
-        toState: stateMachine.states[GameStateName.GameOver],
-      });
+    if (this.map) {
+      if (this.map.didWin()) {
+        stateMachine.change(GameStateName.Transition, {
+          fromState: this,
+          toState: stateMachine.states[GameStateName.Victory],
+        });
+      } else if (this.map.didLose()) {
+        stateMachine.change(GameStateName.Transition, {
+          fromState: this,
+          toState: stateMachine.states[GameStateName.GameOver],
+        });
+      }
     }
   }
 }
-}
-

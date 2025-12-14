@@ -168,11 +168,17 @@
       "name": "hanging_tree",
       "path": "./assets/sounds/hanging_tree.wav",
       "size": 1,
-      "volume": 0.2
+      "volume": 0.3
     },
     {
       "name": "whistle",
       "path": "./assets/sounds/whistle.wav",
+      "size": 1,
+      "volume": 0.2
+    },
+    {
+      "name": "panem",
+      "path": "./assets/sounds/panem.wav",
       "size": 1,
       "volume": 0.2
     }

@@ -1,38 +1,74 @@
 import State from "../../lib/State.js";
 import GameStateName from "../enums/GameStateName.js";
 import PlinkoLevel from "../objects/PlinkoLevel.js";
-import { engine, matter, stateMachine, world } from "../globals.js";
+import { 
+  engine, 
+  matter, 
+  stateMachine, 
+  world, 
+  context, 
+  setCanvasSize,
+  input,
+  DEBUG 
+} from "../globals.js";
 
 const { Composite, Engine } = matter;
 
+/**
+ * Plinko mini game state
+ */
 export default class PlinkoState extends State {
-  constructor(playState = null) {
+  constructor() {
     super();
-    this.playState = playState;
-    // Initialize level in constructor since enter() might not be called
-    this.level = new PlinkoLevel(playState);
+    this.level = null;
   }
 
   enter(parameters = {}) {
-    // Reinitialize level on enter
-    this.level = new PlinkoLevel(this.playState);
+
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    setCanvasSize(480, 352);
+    this.level = new PlinkoLevel(this);
   }
 
   exit() {
-    // Remove all Matter bodies from world
-    Composite.allBodies(world).forEach((body) => Composite.remove(world, body));
+
+    const bodiesToRemove = Composite.allBodies(world);
+    bodiesToRemove.forEach((body) => {
+      Composite.remove(world, body);
+    });
+    
+    this.level = null;
+  }
+
+  /**
+   * Return to main map 
+   */
+  returnToMainMap() {
+    stateMachine.change(GameStateName.Play, {
+      restoreMap: true 
+    });
+  }
+
+  /**
+   * for map switch for consistency with PlayState interface
+   */
+  switchMapWithTransition(mapName) {
+    if (mapName === "map") {
+      this.returnToMainMap();
+    }
   }
 
   update(dt) {
-    /**
-     * Update the Matter world one step/frame. By calling it here,
-     * we can be sure that the Matter world will be updated at the
-     * same rate as our canvas animation.
-     */
     Engine.update(engine, dt * 1000);
 
     if (this.level) {
       this.level.update(dt);
+    }
+    
+    if (DEBUG) {
+      if (input.isKeyPressed("m")) {
+        this.returnToMainMap();
+      }
     }
   }
 

@@ -1,12 +1,12 @@
-import { matter, world, images, context, DEBUG } from "../../globals.js";
+import { matter, world, context, DEBUG } from "../../globals.js";
 import BodyType from "../../enums/BodyType.js";
 import Rectangle from "../Rectangle.js";
 
 export default class PowerUp extends Rectangle {
-  	static WIDTH = 35;
-  	static HEIGHT = 30;
+  static WIDTH = 35;
+  static HEIGHT = 30;
 
-  constructor(x, y) {
+  constructor(x, y, plinkoState = null) {
     super(x, y, PowerUp.WIDTH, PowerUp.HEIGHT, {
       label: BodyType.PowerUp,
       isStatic: true,
@@ -14,22 +14,24 @@ export default class PowerUp extends Rectangle {
       friction: 0.3,
     });
 
+    this.plinkoState = plinkoState;
     this.isConsumable = true;
     this.wasConsumed = false;
+    this.body.entity = this;
 
-    // Center sprite and hitbox around body origin
     this.renderOffset = {
       x: -PowerUp.WIDTH / 2,
       y: -PowerUp.HEIGHT / 2,
     };
-
   }
 
   update(dt) {
     super.update(dt);
   }
 
-   onConsume() {
+  onConsume() {
+    if (this.wasConsumed) return;
+    
     this.wasConsumed = true;
     this.shouldCleanUp = true;
 
@@ -37,14 +39,16 @@ export default class PowerUp extends Rectangle {
       matter.Composite.remove(world, this.body);
     }
 
-    // Return to main map when collected in plinko
-    if (this.playState && typeof this.playState.switchMap === "function") {
-      this.playState.switchMap("map");
+    //return to main map via PlinkoState
+    if (this.plinkoState && typeof this.plinkoState.returnToMainMap === "function") {
+      setTimeout(() => {
+        this.plinkoState.returnToMainMap();
+      }, 100);
     }
   }
 
   render() {
-    if (!this.sprites || !this.sprites[this.currentFrame]) return;
+    if (this.wasConsumed) return; 
 
     context.save();
     context.translate(this.body.position.x, this.body.position.y);
@@ -55,22 +59,19 @@ export default class PowerUp extends Rectangle {
       this.renderOffset.y
     );
 
-    if(DEBUG){
+    if (DEBUG) {
       context.lineWidth = 2;
       context.strokeStyle = "red";
       context.strokeRect(
         this.renderOffset.x,
         this.renderOffset.y,
-        this.width,
-        this.height
+        PowerUp.WIDTH,
+        PowerUp.HEIGHT
       );
     }
-    
 
     context.restore();
   }
 }
-
-
 
 

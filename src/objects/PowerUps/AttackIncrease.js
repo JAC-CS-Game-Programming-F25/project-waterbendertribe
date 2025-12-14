@@ -1,6 +1,7 @@
 import PowerUp from "./PowerUp.js";
 import GameMatter from "../GameMatter.js";
-import { timer } from "../../globals.js";
+import { timer, stateMachine } from "../../globals.js";
+import GameStateName from "../../enums/GameStateName.js";
 
 export default class AttackIncreasePowerUp extends PowerUp {
   static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 32, height: 32 }];
@@ -18,11 +19,15 @@ export default class AttackIncreasePowerUp extends PowerUp {
   }
 
   onConsume() {
+	
+    //get player from the main PlayState through stateMachine
+    const playState = this.plinkoState?.constructor?.name === 'PlinkoState' 
+      ? stateMachine.states[GameStateName.Play] 
+      : this.plinkoState;
+    
+    const player = playState?.map?.player;
 
-    if (this.playState && this.playState.mainMap && this.playState.mainMap.player) {
-
-      const player = this.playState.mainMap.player;
-
+    if (player) {
       player.strength += AttackIncreasePowerUp.STRENGTH_INCREASE;
 
       timer.addTask(

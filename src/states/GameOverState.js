@@ -21,6 +21,7 @@ export default class GameOverState extends State {
 	}
 
 	enter() {
+		sounds.stop(SoundName.Panem);
 		sounds.stop(SoundName.Whistle);
 	}
 

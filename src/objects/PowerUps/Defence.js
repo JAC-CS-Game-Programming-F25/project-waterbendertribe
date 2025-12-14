@@ -1,12 +1,8 @@
-import Sprite from "../../../lib/Sprite.js";
-import Vector from "../../../lib/Vector.js";
-// import GameObject from "./GameObject.js";
-import { images } from "../../globals.js";
-import ImageName from "../../enums/ImageName.js";
-// import Hitbox from '../../lib/Hitbox.js';
+import { images, stateMachine } from "../../globals.js";
 import PowerUp from "./PowerUp.js";
 import GameMatter from "../GameMatter.js";
 import { timer } from "../../globals.js";
+import GameStateName from "../../enums/GameStateName.js";
 
 export default class DefencePowerUp extends PowerUp {
 	static SPRITE_MEASUREMENTS = [{ x: 64, y: 0, width: 32, height: 32}];
@@ -20,9 +16,13 @@ export default class DefencePowerUp extends PowerUp {
 
   onConsume() {
 
-    if (this.playState && this.playState.mainMap && this.playState.mainMap.player) {
-      const player = this.playState.mainMap.player;
+	const playState = this.plinkoState?.constructor?.name === 'PlinkoState' 
+      ? stateMachine.states[GameStateName.Play] 
+      : this.plinkoState;
+    
+    const player = playState?.map?.player;
 
+    if (player) {
       player.defense += 1;
 
       timer.addTask(

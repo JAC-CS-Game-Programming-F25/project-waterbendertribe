@@ -115,7 +115,9 @@ export default class Map {
   }
 
   switchMap(mapName) {
-    if (this.playState && this.playState.switchMap) {
+    if (this.playState?.switchMapWithTransition) {
+      this.playState.switchMapWithTransition(mapName);
+    } else if (this.playState?.switchMap) {
       this.playState.switchMap(mapName);
     }
   }
@@ -172,7 +174,7 @@ export default class Map {
    * Update all game entities
    */
   updateEntities(dt) {
-    // Update balls
+
     this.balls.forEach((ball) => ball.update(dt));
 
     this.balls.forEach((ball) => {

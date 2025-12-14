@@ -5,6 +5,7 @@ const GameStateName = {
 	TitleScreen: 'title-screen',
 	Transition: 'transition',
 	Countdown: 'countdown',
+	Plinko: 'plinko',
 };
 
 export default GameStateName;

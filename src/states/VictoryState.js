@@ -23,18 +23,19 @@ export default class VictoryState extends State {
 
 	enter() {
 		//get wins
+		sounds.stop(SoundName.Panem);
 		const playState = stateMachine.states[GameStateName.Play];
 
-		if (playState && playState.mainMap) {
-
-			playState.mainMap.wins++;
-			SaveManager.saveWins(playState.mainMap.wins);
+		if (playState && playState.map) {
+			playState.map.wins++;
+			SaveManager.saveWins(playState.map.wins);
 		}
 	}
 
 	update() {
-		
+		sounds.play(SoundName.HangingTree);
 		if (input.isKeyPressed(Input.KEYS.ENTER)) {
+			sounds.stop(SoundName.HangingTree);
 			stateMachine.change(GameStateName.Transition, {
 				fromState: this,
 				toState: stateMachine.states[GameStateName.TitleScreen],
