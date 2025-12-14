@@ -1,10 +1,14 @@
 import Vector from "../../lib/Vector.js";
 import GameObject from "./GameObject.js";
 import Sprite from "../../lib/Sprite.js";
-import { images, stateMachine } from "../globals.js";
+import { images } from "../globals.js";
 import ImageName from "../enums/ImageName.js";
-import GameStateName from "../enums/GameStateName.js";
 
+/**
+ * Ball is collectible and sends the player to Plinko.
+ *
+ * If consumed it triggers PlayState.goToPlinko().
+ */
 export default class Ball extends GameObject {
 	static WIDTH = 32;
 	static HEIGHT = 32;

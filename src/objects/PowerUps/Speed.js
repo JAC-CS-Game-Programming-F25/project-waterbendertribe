@@ -1,9 +1,15 @@
 import PowerUp from "./PowerUp.js";
 import GameMatter from "../GameMatter.js";
 import CatStateName from "../../enums/CatStateName.js";
-import { timer, matter, world, stateMachine} from "../../globals.js";
+import { timer, stateMachine } from "../../globals.js";
 import GameStateName from "../../enums/GameStateName.js";
 
+/**
+ * SpeedPowerUp temporarily increases the player's movement speed.
+ *
+ * It activates a speed boost flag and transitions the player to `Running` once
+ * the timer is up it then reverts back to its normal speed/ idling. 
+ */
 export default class SpeedPowerUp extends PowerUp {
   static SPRITE_MEASUREMENTS = [{ x: 32, y: 4, width: 31, height: 25 }];
   static SPEED_DURATION = 10;
@@ -19,17 +25,17 @@ export default class SpeedPowerUp extends PowerUp {
   }
 
   onConsume() {
-    const playState = this.plinkoState?.constructor?.name === 'PlinkoState' 
-      ? stateMachine.states[GameStateName.Play] 
-      : this.plinkoState;
-    
-    const player = playState?.map?.player;
-    
-    if (player) {
+    const playState =
+      this.plinkoState?.constructor?.name === "PlinkoState"
+        ? stateMachine.states[GameStateName.Play]
+        : this.plinkoState;
 
+    const player = playState?.map?.player;
+
+    if (player) {
       player.speedBoostActive = true;
       player.isRunning = true;
-      
+
       player.changeState(CatStateName.Running);
 
       timer.addTask(
@@ -37,8 +43,8 @@ export default class SpeedPowerUp extends PowerUp {
         0,
         SpeedPowerUp.SPEED_DURATION,
         () => {
-         player.speedBoostActive = false;
-         player.isRunning = false;
+          player.speedBoostActive = false;
+          player.isRunning = false;
           player.changeState(CatStateName.Idling);
         }
       );

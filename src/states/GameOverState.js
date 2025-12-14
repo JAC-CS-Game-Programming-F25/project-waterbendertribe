@@ -12,7 +12,7 @@ import {
 } from '../globals.js';
 
 export default class GameOverState extends State {
-		/**
+	/**
 	 * Displays a game over screen where the player
 	 * can press enter to go back to the title screen.
 	 */

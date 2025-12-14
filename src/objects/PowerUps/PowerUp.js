@@ -2,6 +2,12 @@ import { matter, world, context, DEBUG } from "../../globals.js";
 import BodyType from "../../enums/BodyType.js";
 import Rectangle from "../Rectangle.js";
 
+/**
+ * Base class for all Plinko power-ups.
+ *
+ * It provides a rectangular Matter.js body labeled as `PowerUp`
+ * On consume, removes its physics body and triggers return to map via plinkoState.
+ */
 export default class PowerUp extends Rectangle {
   static WIDTH = 35;
   static HEIGHT = 30;
@@ -31,7 +37,7 @@ export default class PowerUp extends Rectangle {
 
   onConsume() {
     if (this.wasConsumed) return;
-    
+
     this.wasConsumed = true;
     this.shouldCleanUp = true;
 
@@ -39,8 +45,11 @@ export default class PowerUp extends Rectangle {
       matter.Composite.remove(world, this.body);
     }
 
-    //return to main map via PlinkoState
-    if (this.plinkoState && typeof this.plinkoState.returnToMainMap === "function") {
+    //return to main map trough PlinkoState
+    if (
+      this.plinkoState &&
+      typeof this.plinkoState.returnToMainMap === "function"
+    ) {
       setTimeout(() => {
         this.plinkoState.returnToMainMap();
       }, 100);
@@ -48,7 +57,7 @@ export default class PowerUp extends Rectangle {
   }
 
   render() {
-    if (this.wasConsumed) return; 
+    if (this.wasConsumed) return;
 
     context.save();
     context.translate(this.body.position.x, this.body.position.y);
@@ -73,5 +82,3 @@ export default class PowerUp extends Rectangle {
     context.restore();
   }
 }
-
-
