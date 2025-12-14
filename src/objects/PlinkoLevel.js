@@ -26,6 +26,8 @@ export default class PlinkoLevel {
     this.canDropBall = true;
     this.returnToMainMap = false;
     this.hasTransitioned = false;
+    this.elapsedTime = 0;
+    this.maxDuration = 30; // Return to main map after 30 seconds if nothing happens
 
     this.spawnY = 20;
 
@@ -52,6 +54,14 @@ export default class PlinkoLevel {
 
   update(dt) {
     this.board.update(dt);
+    this.elapsedTime += dt;
+
+    // if too much time has passed without action, return to main map
+    if (this.elapsedTime > this.maxDuration && !this.hasTransitioned) {
+      this.hasTransitioned = true;
+      stateMachine.change(GameStateName.Play, { restoreMap: true });
+      return;
+    }
 
     // Move ready ball horizontally (only if it is ready)
     if (this.readyBall?.isReady) {
@@ -64,12 +74,10 @@ export default class PlinkoLevel {
     //Clean up balls that fell off screen
     this.balls = this.balls.filter((ball) => !ball.shouldCleanUp);
 
-    //return to main map
+    // if ball fell off without hitting a power-up, return to main map
     if (this.returnToMainMap && !this.hasTransitioned) {
       this.hasTransitioned = true;
-      if (this.playState && typeof this.playState.switchMap === "function") {
-        this.playState.switchMap("map");
-      }
+      stateMachine.change(GameStateName.Play, { restoreMap: true });
       return;
     }
 

@@ -174,7 +174,7 @@ export default class Map {
    * Update all game entities
    */
   updateEntities(dt) {
-    // Update balls
+
     this.balls.forEach((ball) => ball.update(dt));
 
     this.balls.forEach((ball) => {

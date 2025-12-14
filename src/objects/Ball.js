@@ -49,7 +49,6 @@ export default class Ball extends GameObject {
 		this.wasConsumed = true;
 		this.cleanUp = true;
 
-		// Transition to Plinko state via PlayState
 		if (this.map && this.map.playState) {
 			this.map.playState.goToPlinko();
 		}

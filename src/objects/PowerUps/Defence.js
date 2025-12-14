@@ -1,9 +1,4 @@
-import Sprite from "../../../lib/Sprite.js";
-import Vector from "../../../lib/Vector.js";
-// import GameObject from "./GameObject.js";
 import { images, stateMachine } from "../../globals.js";
-import ImageName from "../../enums/ImageName.js";
-// import Hitbox from '../../lib/Hitbox.js';
 import PowerUp from "./PowerUp.js";
 import GameMatter from "../GameMatter.js";
 import { timer } from "../../globals.js";
