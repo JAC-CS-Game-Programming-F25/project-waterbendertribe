@@ -136,7 +136,8 @@ export default class PlinkoBoard {
         // Create power-up using factory
         const powerUp = PowerUpFactory.createInstance(type, x, y);
         if (powerUp) {
-          powerUp.playState = this.playState;
+          // Pass the PlinkoState reference for transitions
+          powerUp.plinkoState = this.playState;
         }
         
         if (powerUp) {
@@ -228,6 +229,7 @@ export default class PlinkoBoard {
 
     if (powerUpObj && typeof powerUpObj.onConsume === "function") {
       powerUpObj.onConsume();
+      console.log("Power-up collected!");
     }
 
     // Remove consumed power-ups

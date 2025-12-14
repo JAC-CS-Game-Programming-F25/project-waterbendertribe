@@ -26,10 +26,9 @@ export default class VictoryState extends State {
 		sounds.stop(SoundName.Panem);
 		const playState = stateMachine.states[GameStateName.Play];
 
-		if (playState && playState.mainMap) {
-
-			playState.mainMap.wins++;
-			SaveManager.saveWins(playState.mainMap.wins);
+		if (playState && playState.map) {
+			playState.map.wins++;
+			SaveManager.saveWins(playState.map.wins);
 		}
 	}
 

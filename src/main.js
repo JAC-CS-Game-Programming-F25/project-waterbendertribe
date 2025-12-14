@@ -27,6 +27,7 @@ import VictoryState from "./states/VictoryState.js";
 import TitleScreenState from "./states/TitleScreenState.js";
 import TransitionState from "./states/TransitionState.js";
 import CountdownState from "./states/CountdownState.js";
+import PlinkoState from "./states/PlinkoState.js";
 
 // Set the dimensions of the play area.
 canvas.width = CANVAS_WIDTH;
@@ -63,6 +64,8 @@ stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
 stateMachine.add(GameStateName.Transition, new TransitionState());
 stateMachine.add(GameStateName.Countdown, new CountdownState());
+stateMachine.add(GameStateName.Plinko, new PlinkoState());
+
 
 //stateMachine.add(GameStateName.Play, new PlayState(mapDefinition));io
 stateMachine.add(

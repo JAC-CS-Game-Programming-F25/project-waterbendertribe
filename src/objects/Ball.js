@@ -1,8 +1,9 @@
 import Vector from "../../lib/Vector.js";
 import GameObject from "./GameObject.js";
 import Sprite from "../../lib/Sprite.js";
-import { images } from "../globals.js";
+import { images, stateMachine } from "../globals.js";
 import ImageName from "../enums/ImageName.js";
+import GameStateName from "../enums/GameStateName.js";
 
 export default class Ball extends GameObject {
 	static WIDTH = 32;
@@ -48,9 +49,9 @@ export default class Ball extends GameObject {
 		this.wasConsumed = true;
 		this.cleanUp = true;
 
-		// switch to plinko map via the map instance
-		if (this.map && this.map.switchMap) {
-			this.map.switchMap("PlinkoMap");
+		// Transition to Plinko state via PlayState
+		if (this.map && this.map.playState) {
+			this.map.playState.goToPlinko();
 		}
 	}
 }

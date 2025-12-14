@@ -1,7 +1,8 @@
 import PowerUp from "./PowerUp.js";
 import GameMatter from "../GameMatter.js";
 import CatStateName from "../../enums/CatStateName.js";
-import { timer, matter, world} from "../../globals.js";
+import { timer, matter, world, stateMachine} from "../../globals.js";
+import GameStateName from "../../enums/GameStateName.js";
 
 export default class SpeedPowerUp extends PowerUp {
   static SPRITE_MEASUREMENTS = [{ x: 32, y: 4, width: 31, height: 25 }];
@@ -18,18 +19,19 @@ export default class SpeedPowerUp extends PowerUp {
   }
 
   onConsume() {
+    const playState = this.plinkoState?.constructor?.name === 'PlinkoState' 
+      ? stateMachine.states[GameStateName.Play] 
+      : this.plinkoState;
+    
+    const player = playState?.map?.player;
+    
+    if (player) {
 
-    // Get the player from playState (on the main map)
-    if (this.playState && this.playState.mainMap && this.playState.mainMap.player) {
-      const player = this.playState.mainMap.player;
-      
-      // // Apply speed boost and flag forced running
       player.speedBoostActive = true;
       player.isRunning = true;
       
       player.changeState(CatStateName.Running);
 
-      // Reset after duration (use timer duration as the delay)
       timer.addTask(
         () => {},
         0,
@@ -37,12 +39,11 @@ export default class SpeedPowerUp extends PowerUp {
         () => {
          player.speedBoostActive = false;
          player.isRunning = false;
-          // Return to idle after boost ends
           player.changeState(CatStateName.Idling);
         }
       );
     }
-    // Return to main map
-       super.onConsume();
+
+    super.onConsume();
   }
 }

@@ -25,12 +25,7 @@ export default class TitleScreenState extends State {
 	}
 
 	enter() {
-
 		this.playState = stateMachine.states[GameStateName.Play];
-		if (this.playState && this.playState.mainMap) {
-			this.playState.mainMap.wins = SaveManager.loadWins();
-		}
-
 	}
 
 	exit() {
@@ -41,7 +36,6 @@ export default class TitleScreenState extends State {
 		timer.update(dt);
 		sounds.play(SoundName.Intro);
 		if (input.isKeyPressed(Input.KEYS.ENTER)) {
-			this.playState?.resetMainMap();
 			stateMachine.change(GameStateName.Transition, {
 				fromState: this,
 				toState: stateMachine.states[GameStateName.Countdown],
@@ -65,7 +59,7 @@ export default class TitleScreenState extends State {
 		);
 		context.font = '35px hunger_games_font';
 		context.fillStyle = 'gold';
-		const wins = this.playState && this.playState.mainMap ? this.playState.mainMap.wins : 0;
+		const wins = this.playState && this.playState.map ? this.playState.map.wins : SaveManager.loadWins();
 		context.fillText(`Wins: ${wins}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 20);
 	}
 }
