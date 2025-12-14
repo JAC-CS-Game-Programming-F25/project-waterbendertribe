@@ -147,25 +147,6 @@ export default class PlinkoBoard {
     }
   }
 
-  // createBeams() {
-  //   const beamCol = [
-  //     { row: 7, cols: 4, offset: 0 }
-  //   ];
-
-  //   beamCol.forEach((config) => {
-  //     const spacing = (this.gridCols - 1) / (config.cols + 1);
-
-  //     for (let col = 0; col < config.cols; col++) {
-  //       const x = PlinkoBoard.GRID_SIZE *
-  //         ((col + 1) * spacing + (config.offset * spacing) / 2);
-  //       const y = PlinkoBoard.GRID_SIZE * (config.row + 3);
-
-  //       const beam = new PlinkoBeam(x, y);
-  //       this.beams.push(beam);
-  //     }
-  //   });
-  // }
-
 
   createBeams() {
     const beamDisplayed = 4;

@@ -20,11 +20,15 @@ export default class CountdownState extends State {
 
 	enter(parameters) {
         
-		//display main map
 		const playState = stateMachine.states[GameStateName.Play];
-		this.map = playState && playState.mainMap ? playState.mainMap : null;
-		this.countdownTime = 3;
 		
+		if (playState) {
+			playState.enter({ restoreMap: true });
+		}
+		
+		this.map = playState && playState.map ? playState.map : null;
+		this.countdownTime = 3;
+				
 		// Position camera at player immediately
 		if (this.map && this.map.camera) {
 			this.map.camera.update(0);
@@ -37,7 +41,7 @@ export default class CountdownState extends State {
 			1, //for every 1 second
 			3, 
 			() => {
-				stateMachine.change(GameStateName.Play);
+				stateMachine.change(GameStateName.Play, { restoreMap: true });
 			}
 		);
 	}
@@ -52,7 +56,7 @@ export default class CountdownState extends State {
 			this.map.render();
 		}
 
-		context.fillStyle = 'rgba(0, 0, 0, 0.3)';
+		context.fillStyle = 'rgba(0, 0, 0, 0.5)';
 		context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
 		context.font = 'bold 120px HungerGames';

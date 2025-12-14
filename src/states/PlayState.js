@@ -21,7 +21,13 @@ export default class PlayState extends State {
     setCanvasSize(1920, 960);
     
     if (parameters.restoreMap && this.map) {
-      console.log("Restored Main Map with existing state");
+      // Check if map has won or lost, if so reset it
+      if (this.map.didWin() || this.map.didLose()) {
+        this.resetMap();
+        console.log("Reset Main Map due to win/loss");
+      } else {
+        console.log("Restored Main Map with existing state");
+      }
     } else {
       //create new map
       this.map = new Map(this.mainMapDefinition, this);
