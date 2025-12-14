@@ -51,8 +51,20 @@
     {
       "name": "plinko_background",
       "path": "./assets/images/plinko/backg.png",
+      "width": 474,
+      "height": 266
+    },
+    {
+      "name": "titlescreen_background",
+      "path": "./assets/images/R.png",
       "width": 480,
       "height": 352
+    },
+    {
+      "name": "victoryscreen_background",
+      "path": "./assets/images/Victor_Tour.png",
+      "width": 1346,
+      "height": 560
     },
     {
       "name": "black_cat_running",
@@ -145,6 +157,30 @@
       "path": "./assets/sounds/effects/player-bump.ogg",
       "size": 1,
       "volume": 0.2
+    },
+    {
+      "name": "intro",
+      "path": "./assets/sounds/intro.wav",
+      "size": 1,
+      "volume": 0.2
+    },
+    {
+      "name": "hanging_tree",
+      "path": "./assets/sounds/hanging_tree.wav",
+      "size": 1,
+      "volume": 0.2
+    },
+    {
+      "name": "whistle",
+      "path": "./assets/sounds/whistle.wav",
+      "size": 1,
+      "volume": 0.2
+    }
+  ],
+  "fonts": [
+    {
+      "name": "hunger_games_font",
+      "path": "./assets/fonts/HungerGames.ttf"
     }
   ]
 }

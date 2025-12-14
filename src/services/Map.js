@@ -17,14 +17,17 @@ import {
 import Vector from "../../lib/Vector.js";
 import Player from "../entities/player/Player.js";
 import EnemyFactory from "./EnemyFactory.js";
+import Direction from "../enums/Direction.js";
 import Ball from "../objects/Ball.js";
 import UserInterface from "./UserInterface.js";
 
 export default class Map {
   constructor(mapDefinition, playState = null) {
+    this.mapDefinition = mapDefinition;
     this.width = mapDefinition.width;
     this.height = mapDefinition.height;
     this.playState = playState;
+    this.wins = 0;
 
     const sprites = Sprite.generateSpritesFromSpriteSheet(
       images.get(ImageName.Tiles),
@@ -33,6 +36,10 @@ export default class Map {
     );
 
     this.bottomLayer = new Layer(mapDefinition.layers[Layer.BOTTOM], sprites);
+    this.bottomLayerTwo = new Layer(
+      mapDefinition.layers[Layer.BOTTOM_TWO],
+      sprites
+    );
     this.collisionLayer = new Layer(
       mapDefinition.layers[Layer.COLLISION],
       sprites
@@ -64,7 +71,7 @@ export default class Map {
 
   /**
    * Create random enemies at spawn points using EnemyFactory
-   * eventually will be place in a circle formate at the start of the game
+   * is placed on a circle formate at the start of the game
    */
   createEnemies() {
     const enemies = [];
@@ -77,15 +84,32 @@ export default class Map {
       new Vector(20 * Tile.SIZE, 15 * Tile.SIZE),
     ];
 
-    spawnPositions.forEach((position) => {
-      const type = EnemyFactory.getRandomCatType();
-      const enemy = EnemyFactory.createInstance(
-        type,
-        { position: position },
-        this,
-        this.player
-      );
-      enemies.push(enemy);
+    const bottomLayerTwoData = this.mapDefinition.layers[Layer.BOTTOM_TWO].data; //spawn enemy on the tiles of bottom layer 2
+    bottomLayerTwoData.forEach((tileId, index) => {
+      if (tileId && tileId !== 0) {
+        const tileX = index % this.width;
+        const tileY = Math.floor(index / this.width);
+
+        const worldX = tileX + 0;
+        const worldY = tileY - 0.2;
+
+        //dont place an enemy on the player tile
+        const playerTileX = Math.floor(27);
+        const playerTileY = Math.floor(19.5);
+
+        if (tileX === playerTileX && tileY === playerTileY) {
+          return;
+        }
+
+        const type = EnemyFactory.getRandomCatType();
+        const enemy = EnemyFactory.createInstance(
+          type,
+          { position: new Vector(worldX, worldY) },
+          this,
+          this.player
+        );
+        enemies.push(enemy);
+      }
     });
 
     return enemies;
@@ -197,6 +221,14 @@ export default class Map {
     });
   }
 
+  didWin() {
+    return this.enemies.length === 0;
+  }
+
+  didLose() {
+    return this.player?.isDead && this.enemies.length > 0;
+  }
+
   /**
    * Clean up dead entities and consumed items (Zelda-style)
    */
@@ -215,6 +247,7 @@ export default class Map {
 
     // Render bottom layer
     this.bottomLayer.render();
+    this.bottomLayerTwo.render();
 
     this.collisionLayer.render(); // Collision layer
     this.enemies.forEach((enemy) => {
