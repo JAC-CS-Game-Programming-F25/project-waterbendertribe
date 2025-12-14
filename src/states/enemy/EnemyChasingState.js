@@ -7,7 +7,7 @@ import Player from "../../entities/player/Player.js";
 import Enemy from "../../entities/Enemy.js";
 
 export default class EnemyChasingState extends State {
-  static ATTACK_RANGE = 40; // Stop moving when this close to player
+  static ATTACK_RANGE = 35; // Stop moving when this close to player
 
   constructor(enemy) {
     super();
@@ -31,16 +31,27 @@ export default class EnemyChasingState extends State {
   }
 
   update(dt) {
-    // Check if player is still in range
-    if (!this.enemy.isPlayerInRange()) {
-      // Player escaped - go back to walking
+    // Check if target is still in range
+    if (!this.enemy.isTargetInRange()) {
+      // Lost target - go back to walking
       this.enemy.changeState(EnemyStateName.Walking);
       return;
     }
 
-    // Check if enemy is close enough to attack (stop moving)
-    if (this.isInAttackRange()) {
-      this.enemy.direction = this.enemy.getDirectionToPlayer();
+    // Check if we reached a ball (power-up)
+    if (this.enemy.targetType === "ball" && this.isInPickupRange()) {
+      this.pickupBall();
+      this.enemy.changeState(EnemyStateName.Idling);
+      return;
+    }
+
+    // Check if enemy is close enough to attack player or enemy
+    if (
+      (this.enemy.targetType === "player" ||
+        this.enemy.targetType === "enemy") &&
+      this.isInAttackRange()
+    ) {
+      this.enemy.direction = this.enemy.getDirectionToTarget();
       this.enemy.currentAnimation = this.animation[this.enemy.direction];
       this.enemy.changeState(EnemyStateName.Attacking);
       return;
@@ -51,7 +62,7 @@ export default class EnemyChasingState extends State {
 
     // Only update direction periodically for smoother movement
     if (this.directionUpdateCooldown <= 0) {
-      this.enemy.direction = this.enemy.getDirectionToPlayer();
+      this.enemy.direction = this.enemy.getDirectionToTarget();
       this.enemy.currentAnimation = this.animation[this.enemy.direction];
       this.directionUpdateCooldown = this.directionUpdateInterval;
     }
@@ -60,54 +71,68 @@ export default class EnemyChasingState extends State {
   }
 
   /**
-   * Check if enemy is close enough to player to stop chasing
+   * Check if enemy is close enough to target to attack
    */
   isInAttackRange() {
-    const enemyCenterX =
-      this.enemy.canvasPosition.x + (this.enemy.dimensions?.x || 32) / 2;
-    const enemyCenterY =
-      this.enemy.canvasPosition.y + (this.enemy.dimensions?.y || 32) / 2;
+    if (!this.enemy.currentTarget) return false;
 
-    const playerCenterX =
-      this.enemy.player.canvasPosition.x + (32 * (Player.SCALE || 1)) / 2;
-    const playerCenterY =
-      this.enemy.player.canvasPosition.y + (32 * (Player.SCALE || 1)) / 2;
-
-    const distance = Math.sqrt(
-      Math.pow(playerCenterX - enemyCenterX, 2) +
-        Math.pow(playerCenterY - enemyCenterY, 2)
+    const distance = this.enemy.getDistanceTo(
+      this.enemy.currentTarget.canvasPosition ||
+        this.enemy.currentTarget.position
     );
 
     return distance <= EnemyChasingState.ATTACK_RANGE;
   }
 
+  /**
+   * Check if enemy is close enough to ball to pick it up
+   */
+  isInPickupRange() {
+    if (!this.enemy.currentTarget || this.enemy.targetType !== "ball")
+      return false;
+
+    const distance = this.enemy.getDistanceTo(
+      this.enemy.currentTarget.position
+    );
+
+    return distance <= EnemyChasingState.PICKUP_RANGE;
+  }
+
+  /**
+   * Pick up the ball (trigger its effect)
+   */
+  pickupBall() {
+    if (this.enemy.currentTarget && !this.enemy.currentTarget.wasConsumed) {
+      // Trigger ball's onConsume with the enemy
+      this.enemy.currentTarget.onConsume(this.enemy);
+    }
+  }
+
   chase(dt) {
     const moveDelta = this.enemy.speed * dt;
-    let newCanvasX = this.enemy.canvasPosition.x;
-    let newCanvasY = this.enemy.canvasPosition.y;
+    let newPositionX = this.enemy.position.x;
+    let newPositionY = this.enemy.position.y;
 
     // Move in ONE direction at a time (no diagonal movement)
     switch (this.enemy.direction) {
       case Direction.Up:
-        newCanvasY -= moveDelta;
+        newPositionY -= moveDelta;
         break;
       case Direction.Down:
-        newCanvasY += moveDelta;
+        newPositionY += moveDelta;
         break;
       case Direction.Left:
-        newCanvasX -= moveDelta;
+        newPositionX -= moveDelta;
         break;
       case Direction.Right:
-        newCanvasX += moveDelta;
+        newPositionX += moveDelta;
         break;
     }
 
     // Check map boundaries and collisions
-    if (this.isValidMove(newCanvasX, newCanvasY)) {
-      this.enemy.canvasPosition.x = newCanvasX;
-      this.enemy.canvasPosition.y = newCanvasY;
-      this.enemy.position.x = Math.floor(newCanvasX / Tile.SIZE);
-      this.enemy.position.y = Math.floor(newCanvasY / Tile.SIZE);
+    if (this.isValidMove(newPositionX, newPositionY)) {
+      this.enemy.position.x = newPositionX;
+      this.enemy.position.y = newPositionY;
     } else {
       // Blocked - try to find alternate path
       this.tryAlternatePath(dt);
@@ -119,8 +144,8 @@ export default class EnemyChasingState extends State {
    */
   tryAlternatePath(dt) {
     const moveDelta = this.enemy.speed * dt;
-    let newCanvasX = this.enemy.canvasPosition.x;
-    let newCanvasY = this.enemy.canvasPosition.y;
+    let newPositionX = this.enemy.position.x;
+    let newPositionY = this.enemy.position.y;
 
     // If moving horizontally and blocked, try vertical
     if (
@@ -128,52 +153,50 @@ export default class EnemyChasingState extends State {
       this.enemy.direction === Direction.Right
     ) {
       // Try moving up or down instead
-      const playerCenterY = this.enemy.player.canvasPosition.y + 16;
-      const enemyCenterY = this.enemy.canvasPosition.y + Enemy.HEIGHT / 2;
+      const playerCenterY = this.enemy.player.position.y + 16;
+      const enemyCenterY = this.enemy.position.y + Enemy.HEIGHT / 2;
 
       if (playerCenterY > enemyCenterY) {
-        newCanvasY += moveDelta;
+        newPositionY += moveDelta;
       } else {
-        newCanvasY -= moveDelta;
+        newPositionY -= moveDelta;
       }
     }
     // If moving vertically and blocked, try horizontal
     else {
-      const playerCenterX = this.enemy.player.canvasPosition.x + 16;
-      const enemyCenterX = this.enemy.canvasPosition.x + Enemy.WIDTH / 2;
+      const playerCenterX = this.enemy.player.position.x + 16;
+      const enemyCenterX = this.enemy.position.x + Enemy.WIDTH / 2;
 
       if (playerCenterX > enemyCenterX) {
-        newCanvasX += moveDelta;
+        newPositionX += moveDelta;
       } else {
-        newCanvasX -= moveDelta;
+        newPositionX -= moveDelta;
       }
     }
 
     // Try the alternate path
-    if (this.isValidMove(newCanvasX, newCanvasY)) {
-      this.enemy.canvasPosition.x = newCanvasX;
-      this.enemy.canvasPosition.y = newCanvasY;
-      this.enemy.position.x = Math.floor(newCanvasX / Tile.SIZE);
-      this.enemy.position.y = Math.floor(newCanvasY / Tile.SIZE);
+    if (this.isValidMove(newPositionX, newPositionY)) {
+      this.enemy.position.x = newPositionX;
+      this.enemy.position.y = newPositionY;
     }
     // If still blocked, enemy just stops this frame
   }
 
-  isValidMove(canvasX, canvasY) {
+  isValidMove(positionX, positionY) {
     // Check map boundaries
     const mapWidth = this.enemy.map.width * Tile.SIZE;
     const mapHeight = this.enemy.map.height * Tile.SIZE;
 
-    if (canvasX < 0 || canvasX + Enemy.WIDTH > mapWidth) {
+    if (positionX < 0 || positionX + Enemy.WIDTH > mapWidth) {
       return false;
     }
-    if (canvasY < 0 || canvasY + Enemy.HEIGHT > mapHeight) {
+    if (positionY < 0 || positionY + Enemy.HEIGHT > mapHeight) {
       return false;
     }
 
     // Check collision layer
-    const tileX = Math.floor((canvasX + Enemy.WIDTH / 2) / Tile.SIZE);
-    const tileY = Math.floor((canvasY + Enemy.HEIGHT / 2) / Tile.SIZE);
+    const tileX = Math.floor((positionX + Enemy.WIDTH / 2) / Tile.SIZE);
+    const tileY = Math.floor((positionY + Enemy.HEIGHT / 2) / Tile.SIZE);
 
     return this.enemy.map.collisionLayer.getTile(tileX, tileY) === null;
   }

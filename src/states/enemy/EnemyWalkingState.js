@@ -37,7 +37,7 @@ export default class EnemyWalkingState extends State {
 
   update(dt) {
     // Check if player is in range - switch to chasing
-    if (this.enemy.isPlayerInRange()) {
+    if (this.enemy.isTargetInRange()) {
       this.enemy.changeState(EnemyStateName.Chasing);
       return;
     }
@@ -78,30 +78,28 @@ export default class EnemyWalkingState extends State {
 
   move(dt) {
     const moveDelta = this.enemy.speed * dt;
-    let newCanvasX = this.enemy.canvasPosition.x;
-    let newCanvasY = this.enemy.canvasPosition.y;
+    let newpositionX = this.enemy.position.x;
+    let newpositionY = this.enemy.position.y;
 
     switch (this.enemy.direction) {
       case Direction.Up:
-        newCanvasY -= moveDelta;
+        newpositionY -= moveDelta;
         break;
       case Direction.Down:
-        newCanvasY += moveDelta;
+        newpositionY += moveDelta;
         break;
       case Direction.Left:
-        newCanvasX -= moveDelta;
+        newpositionX -= moveDelta;
         break;
       case Direction.Right:
-        newCanvasX += moveDelta;
+        newpositionX += moveDelta;
         break;
     }
 
     // Check map boundaries and collisions
-    if (this.isValidMove(newCanvasX, newCanvasY)) {
-      this.enemy.canvasPosition.x = newCanvasX;
-      this.enemy.canvasPosition.y = newCanvasY;
-      this.enemy.position.x = Math.floor(newCanvasX / Tile.SIZE);
-      this.enemy.position.y = Math.floor(newCanvasY / Tile.SIZE);
+    if (this.isValidMove(newpositionX, newpositionY)) {
+      this.enemy.position.x = newpositionX;
+      this.enemy.position.y = newpositionY;
     } else {
       // Hit a wall - choose new direction
       this.chooseRandomDirection();
@@ -109,24 +107,27 @@ export default class EnemyWalkingState extends State {
     }
   }
 
-  isValidMove(canvasX, canvasY) {
+  isValidMove(positionX, positionY) {
     // Check map boundaries
     const mapWidth = this.enemy.map.width * Tile.SIZE;
     const mapHeight = this.enemy.map.height * Tile.SIZE;
 
-    if (canvasX < 0 || canvasX + this.enemy.constructor.WIDTH > mapWidth) {
+    if (positionX < 0 || positionX + this.enemy.constructor.WIDTH > mapWidth) {
       return false;
     }
-    if (canvasY < 0 || canvasY + this.enemy.constructor.HEIGHT > mapHeight) {
+    if (
+      positionY < 0 ||
+      positionY + this.enemy.constructor.HEIGHT > mapHeight
+    ) {
       return false;
     }
 
     // Check collision layer
     const tileX = Math.floor(
-      (canvasX + this.enemy.constructor.WIDTH / 2) / Tile.SIZE
+      (positionX + this.enemy.constructor.WIDTH / 2) / Tile.SIZE
     );
     const tileY = Math.floor(
-      (canvasY + this.enemy.constructor.HEIGHT / 2) / Tile.SIZE
+      (positionY + this.enemy.constructor.HEIGHT / 2) / Tile.SIZE
     );
 
     return this.enemy.map.collisionLayer.getTile(tileX, tileY) === null;

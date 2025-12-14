@@ -40,7 +40,10 @@ export default class Map {
     this.topLayer = new Layer(mapDefinition.layers[Layer.TOP], sprites);
 
     // Create player
-    this.player = new Player({ position: new Vector(20, 20) }, this);
+    this.player = new Player(
+      { position: new Vector(20 * Tile.SIZE, 20 * Tile.SIZE) },
+      this
+    );
     this.userInterface = new UserInterface(this.player);
 
     // Create camera
@@ -67,11 +70,11 @@ export default class Map {
     const enemies = [];
 
     const spawnPositions = [
-      new Vector(10, 10),
-      new Vector(15, 5),
-      new Vector(5, 15),
-      new Vector(25, 25),
-      new Vector(20, 15),
+      new Vector(10 * Tile.SIZE, 10 * Tile.SIZE),
+      new Vector(15 * Tile.SIZE, 5 * Tile.SIZE),
+      new Vector(5 * Tile.SIZE, 15 * Tile.SIZE),
+      new Vector(25 * Tile.SIZE, 25 * Tile.SIZE),
+      new Vector(20 * Tile.SIZE, 15 * Tile.SIZE),
     ];
 
     spawnPositions.forEach((position) => {
@@ -93,9 +96,12 @@ export default class Map {
    */
   spawnRandomBalls(count) {
     for (let i = 0; i < count; i++) {
-      const randomX = Math.random() * (this.width * Tile.SIZE - 100) + 50;
-      const randomY = Math.random() * (this.height * Tile.SIZE - 100) + 50;
-      this.balls.push(new Ball(new Vector(randomX, randomY), this));
+      const x =
+        Math.random() * (this.width * Tile.SIZE - Tile.SIZE) + Tile.SIZE / 2;
+      const y =
+        Math.random() * (this.height * Tile.SIZE - Tile.SIZE) + Tile.SIZE;
+
+      this.balls.push(new Ball(new Vector(x, y), this));
     }
   }
 
@@ -119,7 +125,10 @@ export default class Map {
   }
 
   /**
-   * Collision detection frrom Zelda
+   * Collision detection with support for:
+   * - Player vs Enemy
+   * - Enemy vs Player
+   * - Enemy vs Enemy (NEW!)
    */
   updateCollision(dt) {
     this.enemies.forEach((enemy) => {
@@ -127,6 +136,7 @@ export default class Map {
 
       if (enemy.isDead) return;
 
+      // Player attacks enemy
       if (
         this.player.isClawActive() &&
         this.player.didCollideWithEntity(enemy.hitbox)
@@ -134,12 +144,26 @@ export default class Map {
         this.handleDamage(this.player, enemy);
       }
 
+      // Enemy attacks player
       if (
         enemy.isClawActive() &&
         enemy.didCollideWithEntity(this.player.bodyHitbox)
       ) {
         this.handleDamage(enemy, this.player);
       }
+
+      // Enemy vs Enemy combat (NEW!)
+      this.enemies.forEach((otherEnemy) => {
+        if (otherEnemy === enemy || otherEnemy.isDead) return;
+
+        // Enemy attacks another enemy
+        if (
+          enemy.isClawActive() &&
+          enemy.didCollideWithEntity(otherEnemy.hitbox)
+        ) {
+          this.handleDamage(enemy, otherEnemy);
+        }
+      });
     });
   }
 

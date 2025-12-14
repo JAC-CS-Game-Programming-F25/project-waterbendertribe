@@ -74,8 +74,9 @@ export default class Player extends GameEntity {
   }
 
   updateBodyHitbox() {
-    const x = Math.floor(this.canvasPosition.x);
-    const y = Math.floor(this.canvasPosition.y - this.dimensions.y / 2);
+    // NOW: position is already in pixels
+    const x = Math.floor(this.position.x);
+    const y = Math.floor(this.position.y - this.dimensions.y / 2);
 
     this.bodyHitbox.set(
       x + this.bodyHitboxOffsets.x,
@@ -86,8 +87,9 @@ export default class Player extends GameEntity {
   }
 
   render() {
-    const x = Math.floor(this.canvasPosition.x);
-    const y = Math.floor(this.canvasPosition.y - this.dimensions.y / 2);
+    // NOW: position is already in pixels
+    const x = Math.floor(this.position.x);
+    const y = Math.floor(this.position.y - this.dimensions.y / 2);
 
     const cameraScale = this.map.camera.scale;
     const effectiveScale = Player.SCALE / cameraScale;

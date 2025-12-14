@@ -9,18 +9,25 @@ import Direction from "../enums/Direction.js";
 import Hitbox from "../../lib/Hitbox.js";
 import { context, DEBUG } from "../globals.js";
 import EnemyAttackState from "../states/enemy/EnemyAttackState.js";
+import Tile from "../services/Tile.js";
+import Player from "./player/Player.js";
 
 export default class Enemy extends GameEntity {
   static WIDTH = 32;
   static HEIGHT = 32;
   static SCALE = 1.7;
-  static PERCEPTION_RADIUS = 150;
+  static PERCEPTION_RADIUS = 150; // Detection range for all targets
   static CHASE_SPEED = 80;
   static WANDER_SPEED = 40;
 
   // Invulnerability settings (Zelda-style)
   static INVULNERABLE_DURATION = 0.5;
   static INVULNERABLE_FLASH_INTERVAL = 0.08;
+
+  // AI priorities (what to chase first)
+  static PRIORITY_PLAYER = 3; // Highest priority
+  static PRIORITY_BALL = 2; // Medium priority
+  static PRIORITY_ENEMY = 1;
 
   constructor(
     entityDefinition = {},
@@ -59,12 +66,16 @@ export default class Enemy extends GameEntity {
     this.alpha = 1;
 
     // Hitbox for collisions
-    this.hitbox = new Hitbox(0, 0, 20, 20, "orange");
-    this.hitboxOffsets = { x: 6, y: 6 };
+    this.hitbox = new Hitbox(0, 0, 20, 12, "red");
+    this.hitboxOffsets = { x: 8.5, y: 37 };
 
     this.clawHitbox = new Hitbox(0, 0, 0, 0, "yellow");
 
     this.perceptionRadius = Enemy.PERCEPTION_RADIUS;
+
+    // AI target tracking
+    this.currentTarget = null; // What enemy is currently chasing
+    this.targetType = null; // 'player', 'enemy', or 'ball'
 
     this.stateMachine = this.initializeStateMachine();
     this.currentAnimation =
@@ -75,7 +86,7 @@ export default class Enemy extends GameEntity {
     super.update(dt);
     this.currentAnimation.update(dt);
     this.currentFrame = this.currentAnimation.getCurrentFrame();
-    this.updateHitbox();
+    this.updateBodyHitbox();
     this.updateInvulnerability(dt);
   }
 
@@ -147,11 +158,12 @@ export default class Enemy extends GameEntity {
     this.clawHitbox.set(0, 0, 0, 0);
   }
 
-  updateHitbox() {
-    const x = Math.floor(this.canvasPosition.x);
-    const y = Math.floor(this.canvasPosition.y);
+  updateBodyHitbox() {
+    // NOW: position is already in pixels
+    const x = Math.floor(this.position.x);
+    const y = Math.floor(this.position.y - this.dimensions.y / 2);
 
-    this.hitbox.set(x + this.hitboxOffsets.x, y + this.hitboxOffsets.y, 20, 20);
+    this.hitbox.set(x + this.hitboxOffsets.x, y + this.hitboxOffsets.y, 20, 12);
   }
 
   /**
@@ -170,8 +182,9 @@ export default class Enemy extends GameEntity {
   }
 
   render() {
-    const x = Math.floor(this.canvasPosition.x);
-    const y = Math.floor(this.canvasPosition.y);
+    // NOW: position is already in pixels
+    const x = Math.floor(this.position.x);
+    const y = Math.floor(this.position.y);
 
     const cameraScale = this.map.camera.scale;
     const effectiveScale = Enemy.SCALE / cameraScale;
@@ -187,7 +200,6 @@ export default class Enemy extends GameEntity {
     context.restore();
 
     if (DEBUG) {
-      // Draw hitbox
       this.hitbox.render(context);
 
       if (
@@ -197,9 +209,15 @@ export default class Enemy extends GameEntity {
         this.clawHitbox.render(context);
       }
 
-      // Draw perception radius, in debugger mode you can see the radius of the perception of the enemy
+      // Draw perception radius with color based on target
       context.save();
-      context.strokeStyle = this.isPlayerInRange() ? "red" : "yellow";
+      let color = "yellow"; // No target
+      if (this.currentTarget) {
+        if (this.targetType === "player") color = "red";
+        else if (this.targetType === "enemy") color = "orange";
+        else if (this.targetType === "ball") color = "cyan";
+      }
+      context.strokeStyle = color;
       context.lineWidth = 2;
       context.beginPath();
       context.arc(
@@ -215,39 +233,129 @@ export default class Enemy extends GameEntity {
   }
 
   /**
-   * Check if player is within perception range
+   * Find the best target to chase based on priority and distance
+   * Returns {target, type, distance} or null
    */
-  isPlayerInRange() {
-    const enemyCenterX = this.canvasPosition.x + Enemy.WIDTH / 2;
-    const enemyCenterY = this.canvasPosition.y + Enemy.HEIGHT / 2;
+  findBestTarget() {
+    const targets = [];
 
-    const playerCenterX =
-      this.player.canvasPosition.x + (32 * this.player.constructor.SCALE) / 2;
-    const playerCenterY =
-      this.player.canvasPosition.y + (32 * this.player.constructor.SCALE) / 2;
+    // Check player
+    const playerDist = this.getDistanceTo(this.player.position);
+    if (playerDist <= this.perceptionRadius) {
+      targets.push({
+        target: this.player,
+        type: "player",
+        distance: playerDist,
+        priority: Enemy.PRIORITY_PLAYER,
+      });
+    }
 
-    const distance = Math.sqrt(
-      Math.pow(playerCenterX - enemyCenterX, 2) +
-        Math.pow(playerCenterY - enemyCenterY, 2)
-    );
+    // Check other enemies
+    this.map.enemies.forEach((otherEnemy) => {
+      if (otherEnemy === this || otherEnemy.isDead) return;
 
-    return distance <= this.perceptionRadius;
+      const enemyDist = this.getDistanceTo(otherEnemy.position);
+      if (enemyDist <= this.perceptionRadius) {
+        targets.push({
+          target: otherEnemy,
+          type: "enemy",
+          distance: enemyDist,
+          priority: Enemy.PRIORITY_ENEMY,
+        });
+      }
+    });
+
+    // Check balls (power-ups)
+    this.map.balls.forEach((ball) => {
+      if (ball.cleanUp || ball.wasConsumed) return;
+
+      const ballDist = this.getDistanceTo(ball.position);
+      if (ballDist <= this.perceptionRadius) {
+        targets.push({
+          target: ball,
+          type: "ball",
+          distance: ballDist,
+          priority: Enemy.PRIORITY_BALL,
+        });
+      }
+    });
+
+    // No targets found
+    if (targets.length === 0) return null;
+
+    // Sort by priority (highest first), then by distance (closest first)
+    targets.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority; // Higher priority first
+      }
+      return a.distance - b.distance; // Closer target first
+    });
+
+    return targets[0];
   }
 
-  /**
-   * Get direction towards player
-   */
-  getDirectionToPlayer() {
-    const enemyCenterX = this.canvasPosition.x + Enemy.WIDTH / 2;
-    const enemyCenterY = this.canvasPosition.y + Enemy.HEIGHT / 2;
+  // Check if any valid target is in range
+  isTargetInRange() {
+    const bestTarget = this.findBestTarget();
+    if (bestTarget) {
+      this.currentTarget = bestTarget.target;
+      this.targetType = bestTarget.type;
+      return true;
+    }
 
-    const playerCenterX =
-      this.player.canvasPosition.x + (32 * this.player.constructor.SCALE) / 2;
-    const playerCenterY =
-      this.player.canvasPosition.y + (32 * this.player.constructor.SCALE) / 2;
+    this.currentTarget = null;
+    this.targetType = null;
+    return false;
+  }
 
-    const dx = playerCenterX - enemyCenterX;
-    const dy = playerCenterY - enemyCenterY;
+  // This will give the distance between the target to the enemy or the ball
+  getDistanceTo(targetPosition) {
+    const enemyCenterX = this.position.x + Enemy.WIDTH / 2;
+    const enemyCenterY = this.position.y + Enemy.HEIGHT / 2;
+
+    let targetCenterX, targetCenterY;
+
+    // Handle different target types
+    if (targetPosition.x !== undefined) {
+      targetCenterX = targetPosition.x;
+      targetCenterY = targetPosition.y;
+    } else {
+      targetCenterX = targetPosition.x;
+      targetCenterY = targetPosition.y;
+    }
+
+    return Math.sqrt(
+      Math.pow(targetCenterX - enemyCenterX, 2) +
+        Math.pow(targetCenterY - enemyCenterY, 2)
+    );
+  }
+
+  // This will get the target's direction
+  getDirectionToTarget() {
+    if (!this.currentTarget) return this.direction;
+
+    const enemyCenterX = this.position.X + Enemy.Width / 2;
+    const enemyCenterY = this.position.Y + Enemy.Width / 2;
+
+    let targetCenterX, targetCenterY;
+
+    if (this.targetType === "player") {
+      targetCenterX = this.currentTarget.position.x + (32 * Player.SCALE) / 2;
+      targetCenterY = this.currentTarget.position.y + (32 * Player.SCALE) / 2;
+    } else if (this.targetType === "enemy") {
+      targetCenterX = this.currentTarget.position.x + Enemy.WIDTH / 2;
+      targetCenterY = this.currentTarget.position.y + Enemy.HEIGHT / 2;
+    } else if (this.targetType === "ball") {
+      // Balls use 'position' not 'position'
+      targetCenterX = this.currentTarget.position.x;
+      targetCenterY = this.currentTarget.position.y;
+    } else {
+      // Fallback - shouldn't happen
+      return this.direction;
+    }
+
+    const dx = targetCenterX - enemyCenterX;
+    const dy = targetCenterY - enemyCenterY;
 
     if (Math.abs(dx) > Math.abs(dy)) {
       return dx > 0 ? Direction.Right : Direction.Left;
@@ -255,6 +363,74 @@ export default class Enemy extends GameEntity {
       return dy > 0 ? Direction.Down : Direction.Up;
     }
   }
+
+  // /**
+  //  * Check if player is within perception range
+  //  */
+  // isPlayerInRange() {
+  //   this.map.array.forEach(element => {
+  //     const enemyCenterX = this.position.x + Enemy.WIDTH / 2;
+  //     const enemyCenterY = this.position.y + Enemy.HEIGHT / 2;
+
+  //     const elementCenter = this.player.position.x + (32 * )
+  //   });
+  //   const enemyCenterX = this.position.x + Enemy.WIDTH / 2;
+  //   const enemyCenterY = this.position.y + Enemy.HEIGHT / 2;
+
+  //   const playerCenterX =
+  //     this.player.position.x + (32 * this.player.constructor.SCALE) / 2;
+  //   const playerCenterY =
+  //     this.player.position.y + (32 * this.player.constructor.SCALE) / 2;
+
+  //   const distance = Math.sqrt(
+  //     Math.pow(playerCenterX - enemyCenterX, 2) +
+  //       Math.pow(playerCenterY - enemyCenterY, 2)
+  //   );
+
+  //   return distance <= this.perceptionRadius;
+  // }
+
+  // /**
+  //  * Get direction towards player - IMPROVED VERSION
+  //  * Now properly handles diagonal cases and adds a threshold to prevent jittering
+  //  */
+  // getDirectionToPlayer() {
+  //   // NOW: position is already in pixels
+  //   const enemyCenterX = this.position.x + Enemy.WIDTH / 2;
+  //   const enemyCenterY = this.position.y + Enemy.HEIGHT / 2;
+
+  //   const playerCenterX =
+  //     this.player.position.x + (32 * this.player.constructor.SCALE) / 2;
+  //   const playerCenterY =
+  //     this.player.position.y + (32 * this.player.constructor.SCALE) / 2;
+
+  //   const dx = playerCenterX - enemyCenterX;
+  //   const dy = playerCenterY - enemyCenterY;
+
+  //   const absDx = Math.abs(dx);
+  //   const absDy = Math.abs(dy);
+
+  //   // Add a small threshold to prevent jittering when distances are very similar
+  //   const THRESHOLD = 5; // pixels
+
+  //   // If horizontal distance is significantly larger, move horizontally
+  //   if (absDx > absDy + THRESHOLD) {
+  //     return dx > 0 ? Direction.Right : Direction.Left;
+  //   }
+  //   // If vertical distance is significantly larger, move vertically
+  //   else if (absDy > absDx + THRESHOLD) {
+  //     return dy > 0 ? Direction.Down : Direction.Up;
+  //   }
+  //   // When they're roughly equal, alternate based on which is slightly larger
+  //   // This prevents always choosing vertical
+  //   else {
+  //     if (absDx >= absDy) {
+  //       return dx > 0 ? Direction.Right : Direction.Left;
+  //     } else {
+  //       return dy > 0 ? Direction.Down : Direction.Up;
+  //     }
+  //   }
+  // }
 
   initializeStateMachine() {
     const stateMachine = new StateMachine();

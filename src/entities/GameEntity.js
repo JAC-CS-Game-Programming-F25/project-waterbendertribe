@@ -15,11 +15,10 @@ export default class GameEntity {
    * @param {object} entityDefinition
    */
   constructor(entityDefinition = {}) {
+    // NOW: position stores PIXELS directly (Zelda-style)
     this.position = entityDefinition.position ?? new Vector();
-    this.canvasPosition = new Vector(
-      Math.floor(this.position.x * Tile.SIZE),
-      Math.floor(this.position.y * Tile.SIZE)
-    );
+    // REMOVED: canvasPosition (no longer needed)
+
     this.dimensions = entityDefinition.dimensions ?? new Vector();
     this.direction = entityDefinition.direction ?? Direction.Down;
     this.stateMachine = null;

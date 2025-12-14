@@ -36,8 +36,8 @@ export default class Camera {
     const spriteHeight = 32 * playerScale; // e.g., 64 if scale is 2
 
     // Center of player sprite in world coordinates
-    const playerCenterX = this.player.canvasPosition.x + spriteWidth / 2;
-    const playerCenterY = this.player.canvasPosition.y + spriteHeight / 2;
+    const playerCenterX = this.player.position.x + spriteWidth / 2;
+    const playerCenterY = this.player.position.y + spriteHeight / 2;
 
     // Position camera so player center is at viewport center
     let targetX = playerCenterX - this.viewportWidth / 2;

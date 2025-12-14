@@ -69,8 +69,8 @@ export default class PlayerAttackState extends State {
     const spriteWidth = 32 * scale;
     const spriteHeight = 32 * scale;
 
-    const baseX = this.player.canvasPosition.x;
-    const baseY = this.player.canvasPosition.y - this.player.dimensions.y / 2;
+    const baseX = this.player.position.x;
+    const baseY = this.player.position.y - this.player.dimensions.y / 2;
 
     const direction = this.player.direction;
     const offset = PlayerAttackState.OFFSETS[direction];

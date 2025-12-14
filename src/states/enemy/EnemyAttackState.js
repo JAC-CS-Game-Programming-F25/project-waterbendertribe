@@ -9,10 +9,10 @@ export default class EnemyAttackState extends State {
   static CLAW_HEIGHT = 20;
 
   static OFFSETS = {
-    [Direction.Left]: { x: 6, y: -2 },
-    [Direction.Right]: { x: -25, y: -2 },
-    [Direction.Up]: { x: -9, y: 15 },
-    [Direction.Down]: { x: -9, y: -20 },
+    [Direction.Left]: { x: 6, y: 15 },
+    [Direction.Right]: { x: -25, y: 15 },
+    [Direction.Up]: { x: -9, y: 33 },
+    [Direction.Down]: { x: -9, y: -6 },
   };
 
   /**
@@ -69,8 +69,8 @@ export default class EnemyAttackState extends State {
     const spriteWidth = 32 * scale;
     const spriteHeight = 32 * scale;
 
-    const baseX = this.enemy.canvasPosition.x;
-    const baseY = this.enemy.canvasPosition.y - this.enemy.dimensions.y / 2;
+    const baseX = this.enemy.position.x;
+    const baseY = this.enemy.position.y - this.enemy.dimensions.y / 2;
 
     const direction = this.enemy.direction;
     const offset = EnemyAttackState.OFFSETS[direction];

@@ -32,7 +32,7 @@ export default class EnemyIdlingState extends State {
 
   update(dt) {
     // Check if player is in range
-    if (this.enemy.isPlayerInRange()) {
+    if (this.enemy.isTargetInRange()) {
       this.enemy.changeState(EnemyStateName.Chasing);
     }
   }
