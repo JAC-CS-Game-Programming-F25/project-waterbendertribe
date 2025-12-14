@@ -50,21 +50,22 @@ export default class PowerUp extends Rectangle {
     context.translate(this.body.position.x, this.body.position.y);
     context.rotate(this.body.angle);
 
-    // Draw sprite
     this.sprites[this.currentFrame].render(
       this.renderOffset.x,
       this.renderOffset.y
     );
 
-    // Draw hitbox overlay for debugging/visibility
-    context.lineWidth = 2;
-    context.strokeStyle = "red";
-    context.strokeRect(
-      this.renderOffset.x,
-      this.renderOffset.y,
-      this.width,
-      this.height
-    );
+    if(DEBUG){
+      context.lineWidth = 2;
+      context.strokeStyle = "red";
+      context.strokeRect(
+        this.renderOffset.x,
+        this.renderOffset.y,
+        this.width,
+        this.height
+      );
+    }
+    
 
     context.restore();
   }

@@ -1,5 +1,5 @@
 import BodyType from "../enums/BodyType.js";
-import { matter, context } from "../globals.js";
+import { matter, context, DEBUG } from "../globals.js";
 import GameMatter from "./GameMatter.js";
 import Rectangle from "./Rectangle.js";
 
@@ -40,13 +40,12 @@ export default class PlinkoBeam extends Rectangle {
     context.translate(this.body.position.x, this.body.position.y);
     context.rotate(this.body.angle);
 
-    // Draw sprite
     this.sprites[this.currentFrame].render(
       this.renderOffset.x,
       this.renderOffset.y
     );
 
-    // Draw hitbox overlay for debugging/visibility
+    if(DEBUG){
     context.lineWidth = 2;
     context.strokeStyle = "blue";
     context.strokeRect(
@@ -55,19 +54,9 @@ export default class PlinkoBeam extends Rectangle {
       this.width,
       this.height
     );
+    }
 
     context.restore();
-    // context.restore();
-    // super.render(() => {
-    //   context.lineWidth = 4;
-    //   context.strokeStyle = "blue";
-    //   context.strokeRect(
-    //     this.renderOffset.x,
-    //     this.renderOffset.y,
-    //     this.width,
-    //     this.height
-    //   );
-    // });
   }
 }
 
