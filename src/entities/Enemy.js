@@ -11,6 +11,7 @@ import { context, DEBUG } from "../globals.js";
 import EnemyAttackState from "../states/enemy/EnemyAttackState.js";
 import Tile from "../services/Tile.js";
 import Player from "./player/Player.js";
+import Ball from "../objects/Ball.js";
 
 export default class Enemy extends GameEntity {
   static WIDTH = 32;
@@ -334,8 +335,8 @@ export default class Enemy extends GameEntity {
   getDirectionToTarget() {
     if (!this.currentTarget) return this.direction;
 
-    const enemyCenterX = this.position.X + Enemy.Width / 2;
-    const enemyCenterY = this.position.Y + Enemy.Width / 2;
+    const enemyCenterX = this.position.x + Enemy.WIDTH / 2;
+    const enemyCenterY = this.position.y + Enemy.HEIGHT / 2;
 
     let targetCenterX, targetCenterY;
 
@@ -347,8 +348,8 @@ export default class Enemy extends GameEntity {
       targetCenterY = this.currentTarget.position.y + Enemy.HEIGHT / 2;
     } else if (this.targetType === "ball") {
       // Balls use 'position' not 'position'
-      targetCenterX = this.currentTarget.position.x;
-      targetCenterY = this.currentTarget.position.y;
+      targetCenterX = this.currentTarget.position.x + Ball.WIDTH / 2;
+      targetCenterY = this.currentTarget.position.y + Ball.HEIGHT / 2;
     } else {
       // Fallback - shouldn't happen
       return this.direction;

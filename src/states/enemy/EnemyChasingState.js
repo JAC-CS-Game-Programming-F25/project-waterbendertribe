@@ -8,6 +8,7 @@ import Enemy from "../../entities/Enemy.js";
 
 export default class EnemyChasingState extends State {
   static ATTACK_RANGE = 35; // Stop moving when this close to player
+  static PICKUP_RANGE = 30;
 
   constructor(enemy) {
     super();
@@ -77,8 +78,7 @@ export default class EnemyChasingState extends State {
     if (!this.enemy.currentTarget) return false;
 
     const distance = this.enemy.getDistanceTo(
-      this.enemy.currentTarget.canvasPosition ||
-        this.enemy.currentTarget.position
+      this.enemy.currentTarget.position
     );
 
     return distance <= EnemyChasingState.ATTACK_RANGE;
