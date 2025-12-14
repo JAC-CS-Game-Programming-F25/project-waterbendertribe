@@ -2,7 +2,7 @@ import Input from '../../lib/Input.js';
 import State from '../../lib/State.js';
 import GameStateName from '../enums/GameStateName.js';
 import ImageName from '../enums/ImageName.js';
-//import SoundName from '../../enums/SoundName.js';
+import SoundName from '../enums/SoundName.js';
 import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
@@ -33,6 +33,7 @@ export default class VictoryState extends State {
 	}
 
 	update() {
+		
 		if (input.isKeyPressed(Input.KEYS.ENTER)) {
 			stateMachine.change(GameStateName.Transition, {
 				fromState: this,

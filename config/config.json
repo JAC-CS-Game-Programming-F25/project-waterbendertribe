@@ -157,6 +157,24 @@
       "path": "./assets/sounds/effects/player-bump.ogg",
       "size": 1,
       "volume": 0.2
+    },
+    {
+      "name": "intro",
+      "path": "./assets/sounds/intro.wav",
+      "size": 1,
+      "volume": 0.2
+    },
+    {
+      "name": "hanging_tree",
+      "path": "./assets/sounds/hanging_tree.wav",
+      "size": 1,
+      "volume": 0.2
+    },
+    {
+      "name": "whistle",
+      "path": "./assets/sounds/whistle.wav",
+      "size": 1,
+      "volume": 0.2
     }
   ],
   "fonts": [

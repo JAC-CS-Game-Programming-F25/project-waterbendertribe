@@ -1,7 +1,7 @@
 import Input from '../../lib/Input.js';
 import State from '../../lib/State.js';
 import GameStateName from '../enums/GameStateName.js';
-//import SoundName from '../../enums/SoundName.js';
+import SoundName from '../enums/SoundName.js';
 import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
@@ -21,11 +21,13 @@ export default class GameOverState extends State {
 	}
 
 	enter() {
-		//sounds.stop(SoundName.Music);
+		sounds.stop(SoundName.Whistle);
 	}
 
 	update() {
+		sounds.play(SoundName.Whistle);
 		if (input.isKeyPressed(Input.KEYS.ENTER)) {
+			sounds.stop(SoundName.Whistle);
 			stateMachine.change(GameStateName.Transition, {
 				fromState: this,
 				toState: stateMachine.states[GameStateName.TitleScreen],

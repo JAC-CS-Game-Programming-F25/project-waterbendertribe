@@ -2,7 +2,7 @@ import Input from '../../lib/Input.js';
 import State from '../../lib/State.js';
 import GameStateName from '../enums/GameStateName.js';
 import ImageName from '../enums/ImageName.js';
-//import SoundName from '../../enums/SoundName.js';
+import SoundName from '../enums/SoundName.js';
 import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
@@ -25,20 +25,21 @@ export default class TitleScreenState extends State {
 	}
 
 	enter() {
+
 		this.playState = stateMachine.states[GameStateName.Play];
 		if (this.playState && this.playState.mainMap) {
 			this.playState.mainMap.wins = SaveManager.loadWins();
 		}
-		//sounds.play(SoundName.Rain);
+
 	}
 
 	exit() {
-		//sounds.stop(SoundName.Rain);
+		sounds.stop(SoundName.Intro);
 	}
 
 	update(dt) {
 		timer.update(dt);
-
+		sounds.play(SoundName.Intro);
 		if (input.isKeyPressed(Input.KEYS.ENTER)) {
 			this.playState?.resetMainMap();
 			stateMachine.change(GameStateName.Transition, {

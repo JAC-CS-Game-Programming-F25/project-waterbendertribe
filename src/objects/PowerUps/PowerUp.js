@@ -14,10 +14,6 @@ export default class PowerUp extends Rectangle {
       friction: 0.3,
     });
 
-    // Keep a back-reference on the body for collision callbacks
-    this.body.entity = this;
-    this.body.gameObject = this;
-
     this.isConsumable = true;
     this.wasConsumed = false;
 

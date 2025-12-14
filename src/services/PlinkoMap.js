@@ -225,17 +225,9 @@ export default class PlinkoBoard {
 
   handleBallPowerUpCollision(ballBody, powerUpBody) {
     const powerUpObj = powerUpBody?.entity || powerUpBody?.gameObject;
-    const ballObj = ballBody?.entity;
-
-    // Mark that ball hit a power-up
-    if (ballObj) {
-      ballObj.hitPowerUp = true;
-      console.log("Ball hit power-up, hitPowerUp set to true");
-    }
 
     if (powerUpObj && typeof powerUpObj.onConsume === "function") {
       powerUpObj.onConsume();
-      console.log("Power-up collected!");
     }
 
     // Remove consumed power-ups
