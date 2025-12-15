@@ -6,47 +6,47 @@ import Tile from "../../services/Tile.js";
 import { timer } from "../../globals.js";
 import Enemy from "../../entities/Enemy.js";
 
-export default class EnemyWalkingState extends State {
+export default class EnemyRunningState extends State {
   static WALK_DURATION_MIN = 2;
   static WALK_DURATION_MAX = 5;
-  static IDLE_CHANCE = 0.3; // 30% chance to go idle after walking
+  static IDLE_CHANCE = 0.3; // 30% chance to go idle after Running
+  static MOVE_SPEED = 200;
 
   constructor(enemy) {
     super();
     this.enemy = enemy;
 
     this.animation = {
-      [Direction.Up]: new Animation([0, 1, 2, 3], 0.15),
-      [Direction.Down]: new Animation([8, 9, 10, 11], 0.15),
-      [Direction.Left]: new Animation([12, 13, 14, 15], 0.15),
-      [Direction.Right]: new Animation([4, 5, 6, 7], 0.15),
+      [Direction.Up]: new Animation([0, 1, 2, 3, 4, 5, 6, 7], 0.05),
+      [Direction.Down]: new Animation([16, 17, 18, 19, 20, 21, 22, 23], 0.05),
+      [Direction.Left]: new Animation([24, 25, 26, 27, 28, 29, 30, 31], 0.05),
+      [Direction.Right]: new Animation([8, 9, 10, 11, 12, 13, 14, 15], 0.05),
     };
   }
 
   enter() {
-    this.enemy.speed = Enemy.WANDER_SPEED;
+    // ✅ RULE: Running uses running sprites and high speed
+    this.enemy.sprites = this.enemy.runningSprites;
+    this.enemy.speed = EnemyRunningState.MOVE_SPEED;
 
-    this.enemy.sprites = this.enemy.walkingSprites;
-
-    this.chooseRandomDirection();
     this.enemy.currentAnimation = this.animation[this.enemy.direction];
 
     this.walkDuration = this.getRandomDuration(
-      EnemyWalkingState.WALK_DURATION_MIN,
-      EnemyWalkingState.WALK_DURATION_MAX
+      EnemyRunningState.WALK_DURATION_MIN,
+      EnemyRunningState.WALK_DURATION_MAX
     );
 
     this.startTimer();
   }
 
   update(dt) {
-    // ✅ CRITICAL: If speed boost active while walking, switch to Running
-    if (this.enemy.speedBoostActive) {
-      this.enemy.changeState(EnemyStateName.Running);
+    // ✅ CRITICAL: If speed boost ended while running, switch to Walking
+    if (!this.enemy.speedBoostActive) {
+      this.enemy.changeState(EnemyStateName.Walking);
       return;
     }
 
-    // Check if target is in range - switch to chasing
+    // ✅ Check if any target (player, enemy, ball) is in range - switch to chasing
     if (this.enemy.isTargetInRange()) {
       this.enemy.changeState(EnemyStateName.Chasing);
       return;
@@ -58,17 +58,17 @@ export default class EnemyWalkingState extends State {
   async startTimer() {
     await timer.wait(this.walkDuration);
 
-    // After walking, maybe go idle or keep walking
+    // After Running, maybe go idle or keep Running
     if (this.enemy.stateMachine.currentState === this) {
-      if (Math.random() < EnemyWalkingState.IDLE_CHANCE) {
+      if (Math.random() < EnemyRunningState.IDLE_CHANCE) {
         this.enemy.changeState(EnemyStateName.Idling);
       } else {
-        // Change direction and keep walking
+        // Change direction and keep Running
         this.chooseRandomDirection();
         this.enemy.currentAnimation = this.animation[this.enemy.direction];
         this.walkDuration = this.getRandomDuration(
-          EnemyWalkingState.WALK_DURATION_MIN,
-          EnemyWalkingState.WALK_DURATION_MAX
+          EnemyRunningState.WALK_DURATION_MIN,
+          EnemyRunningState.WALK_DURATION_MAX
         );
         this.startTimer();
       }

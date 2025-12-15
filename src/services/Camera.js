@@ -1,5 +1,6 @@
 import Vector from "../../lib/Vector.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals.js";
+import Player from "../entities/player/Player.js";
 
 /**
  * A simple camera that follows the player in a top-down 2D game.
@@ -31,13 +32,13 @@ export default class Camera {
    */
   update(dt) {
     // Get player's actual sprite size (accounting for scale)
-    const playerScale = this.player.constructor.SCALE || 1;
+    const playerScale = Player.SCALE || 1;
     const spriteWidth = 32 * playerScale; // e.g., 64 if scale is 2
     const spriteHeight = 32 * playerScale; // e.g., 64 if scale is 2
 
     // Center of player sprite in world coordinates
-    const playerCenterX = this.player.canvasPosition.x + spriteWidth / 2;
-    const playerCenterY = this.player.canvasPosition.y + spriteHeight / 2;
+    const playerCenterX = this.player.position.x + spriteWidth / 2;
+    const playerCenterY = this.player.position.y + spriteHeight / 2;
 
     // Position camera so player center is at viewport center
     let targetX = playerCenterX - this.viewportWidth / 2;

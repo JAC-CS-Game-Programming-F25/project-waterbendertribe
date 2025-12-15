@@ -3,6 +3,7 @@ const EnemyStateName = {
   Walking: "walking",
   Chasing: "chasing",
   Attacking: "attacking",
+  Running: "running",
 };
 
 export default EnemyStateName;

@@ -27,10 +27,6 @@ export default class PlayerIdlingState extends State {
   }
 
   Action() {
-    if (input.isKeyPressed(Input.KEYS.SHIFT)) {
-      this.player.isRunning = !this.player.isRunning;
-    }
-
     if (input.isKeyPressed(Input.KEYS.SPACE)) {
       this.player.changeState(CatStateName.Attacking);
     }
@@ -52,7 +48,8 @@ export default class PlayerIdlingState extends State {
         this.player.direction = Direction.Left;
       }
 
-      if (this.player.isRunning) {
+      // Check speed boost flag to determine state
+      if (this.player.speedBoostActive) {
         this.player.changeState(CatStateName.Running);
       } else {
         this.player.changeState(CatStateName.Walking);

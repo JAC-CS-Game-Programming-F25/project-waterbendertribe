@@ -39,9 +39,15 @@ export default class PlayerRunningState extends State {
   }
 
   handleMovement(dt) {
-    
+    // ✅ CRITICAL: If speed boost ended while running, switch to Walking
+    if (!this.player.speedBoostActive) {
+      this.player.changeState(CatStateName.Walking);
+      return;
+    }
+
     if (input.isKeyPressed(Input.KEYS.SPACE)) {
       this.player.changeState(CatStateName.Attacking);
+      return;
     }
 
     if (
@@ -51,11 +57,6 @@ export default class PlayerRunningState extends State {
       !input.isKeyHeld(Input.KEYS.D)
     ) {
       this.player.changeState(CatStateName.Idling);
-      return;
-    }
-
-    if (!this.player.isRunning) {
-      this.player.changeState(CatStateName.Walking);
       return;
     }
 
@@ -78,52 +79,48 @@ export default class PlayerRunningState extends State {
   move(dt) {
     const moveDelta = PlayerRunningState.MOVE_SPEED * dt;
 
-    let newCanvasX = this.player.canvasPosition.x;
-    let newCanvasY = this.player.canvasPosition.y;
+    let newpositionX = this.player.position.x;
+    let newpositionY = this.player.position.y;
 
     switch (this.player.direction) {
       case Direction.Up:
-        newCanvasY -= moveDelta;
+        newpositionY -= moveDelta;
         break;
       case Direction.Down:
-        newCanvasY += moveDelta;
+        newpositionY += moveDelta;
         break;
       case Direction.Left:
-        newCanvasX -= moveDelta;
+        newpositionX -= moveDelta;
         break;
       case Direction.Right:
-        newCanvasX += moveDelta;
+        newpositionX += moveDelta;
         break;
     }
 
-    if (this.isValidMove(newCanvasX, newCanvasY)) {
-      this.player.canvasPosition.x = newCanvasX;
-      this.player.canvasPosition.y = newCanvasY;
-      this.player.position.x = Math.floor(newCanvasX / Tile.SIZE);
-      this.player.position.y = Math.floor(newCanvasY / Tile.SIZE);
+    if (this.isValidMove(newpositionX, newpositionY)) {
+      this.player.position.x = newpositionX;
+      this.player.position.y = newpositionY;
     } else {
       sounds.play(SoundName.PlayerBump);
     }
   }
 
-  isValidMove(canvasX, canvasY) {
-    // Calculate where the body hitbox would be at the new position
+  isValidMove(positionX, positionY) {
     const offsetX = this.player.bodyHitboxOffsets.x;
     const offsetY = this.player.bodyHitboxOffsets.y;
     const hitboxWidth = this.player.bodyHitbox.dimensions.x;
     const hitboxHeight = this.player.bodyHitbox.dimensions.y;
 
-    const renderY = canvasY - this.player.dimensions.y / 2;
+    const renderY = positionY - this.player.dimensions.y / 2;
     const collisionYOffset = -20;
     const insetAmount = 6;
 
-    // Check three points across the hitbox width
-    const leftX = Math.floor((canvasX + offsetX + insetAmount) / Tile.SIZE);
+    const leftX = Math.floor((positionX + offsetX + insetAmount) / Tile.SIZE);
     const centerX = Math.floor(
-      (canvasX + offsetX + hitboxWidth / 2) / Tile.SIZE
+      (positionX + offsetX + hitboxWidth / 2) / Tile.SIZE
     );
     const rightX = Math.floor(
-      (canvasX + offsetX + hitboxWidth - insetAmount) / Tile.SIZE
+      (positionX + offsetX + hitboxWidth - insetAmount) / Tile.SIZE
     );
     const centerY = Math.floor(
       (renderY + offsetY + collisionYOffset + hitboxHeight / 2) / Tile.SIZE
