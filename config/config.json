@@ -159,6 +159,18 @@
       "volume": 0.2
     },
     {
+      "name": "cat_slash",
+      "path": "./assets/sounds/effects/cat_slash.ogg",
+      "size": 1,
+      "volume": 0.2
+    },
+    {
+      "name": "power_up",
+      "path": "./assets/sounds/effects/power_up.ogg",
+      "size": 1,
+      "volume": 0.7
+    },
+    {
       "name": "intro",
       "path": "./assets/sounds/intro.wav",
       "size": 1,
@@ -180,7 +192,7 @@
       "name": "panem",
       "path": "./assets/sounds/panem.wav",
       "size": 1,
-      "volume": 0.2
+      "volume": 0.15
     }
   ],
   "fonts": [

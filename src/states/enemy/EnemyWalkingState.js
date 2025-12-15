@@ -7,14 +7,21 @@ import { timer } from "../../globals.js";
 import Enemy from "../../entities/Enemy.js";
 
 export default class EnemyWalkingState extends State {
+  // Duration range for walking before switching behavioe
   static WALK_DURATION_MIN = 2;
   static WALK_DURATION_MAX = 5;
-  static IDLE_CHANCE = 0.3; // 30% chance to go idle after walking
 
+  // Chance to stop and idle after walking
+  static IDLE_CHANCE = 0.3;
+
+  /**
+   * Handles enemy behavior when wandering around the map
+   */
   constructor(enemy) {
     super();
     this.enemy = enemy;
 
+    // Walking animations for each direction
     this.animation = {
       [Direction.Up]: new Animation([0, 1, 2, 3], 0.15),
       [Direction.Down]: new Animation([8, 9, 10, 11], 0.15),
@@ -23,14 +30,21 @@ export default class EnemyWalkingState extends State {
     };
   }
 
+  /**
+   * Called when the enemy enters the walking state
+   */
   enter() {
+    // Walking uses slower wander speedd
     this.enemy.speed = Enemy.WANDER_SPEED;
 
+    // Use walking sprite set
     this.enemy.sprites = this.enemy.walkingSprites;
 
+    //pick an initial random direction
     this.chooseRandomDirection();
     this.enemy.currentAnimation = this.animation[this.enemy.direction];
 
+    // Decide how long the enemy will walk
     this.walkDuration = this.getRandomDuration(
       EnemyWalkingState.WALK_DURATION_MIN,
       EnemyWalkingState.WALK_DURATION_MAX
@@ -39,14 +53,17 @@ export default class EnemyWalkingState extends State {
     this.startTimer();
   }
 
+  /**
+   * Runs every frame while the enemy is walking
+   */
   update(dt) {
-    // ✅ CRITICAL: If speed boost active while walking, switch to Running
+    // If speed boost activates, switch to running
     if (this.enemy.speedBoostActive) {
       this.enemy.changeState(EnemyStateName.Running);
       return;
     }
 
-    // Check if target is in range - switch to chasing
+    // If a target appears, begin chasing
     if (this.enemy.isTargetInRange()) {
       this.enemy.changeState(EnemyStateName.Chasing);
       return;
@@ -55,26 +72,34 @@ export default class EnemyWalkingState extends State {
     this.move(dt);
   }
 
+  /**
+   * Controls how long the enemy keeps walking
+   */
   async startTimer() {
     await timer.wait(this.walkDuration);
 
-    // After walking, maybe go idle or keep walking
+    // Only change state if still walking
     if (this.enemy.stateMachine.currentState === this) {
       if (Math.random() < EnemyWalkingState.IDLE_CHANCE) {
         this.enemy.changeState(EnemyStateName.Idling);
       } else {
-        // Change direction and keep walking
+        // Pick a new direction and continue walking
         this.chooseRandomDirection();
         this.enemy.currentAnimation = this.animation[this.enemy.direction];
+
         this.walkDuration = this.getRandomDuration(
           EnemyWalkingState.WALK_DURATION_MIN,
           EnemyWalkingState.WALK_DURATION_MAX
         );
+
         this.startTimer();
       }
     }
   }
 
+  /**
+   * Chooses a random direction for movement
+   */
   chooseRandomDirection() {
     const directions = [
       Direction.Up,
@@ -82,15 +107,20 @@ export default class EnemyWalkingState extends State {
       Direction.Left,
       Direction.Right,
     ];
+
     this.enemy.direction =
       directions[Math.floor(Math.random() * directions.length)];
   }
 
+  /**
+   * Moves the enemy based on the current direction
+   */
   move(dt) {
     const moveDelta = this.enemy.speed * dt;
     let newpositionX = this.enemy.position.x;
     let newpositionY = this.enemy.position.y;
 
+    // Apply movement in one direction only
     switch (this.enemy.direction) {
       case Direction.Up:
         newpositionY -= moveDelta;
@@ -106,36 +136,38 @@ export default class EnemyWalkingState extends State {
         break;
     }
 
-    // Check map boundaries and collisions
+    // Apply movement if valid, otherwise change direction
     if (this.isValidMove(newpositionX, newpositionY)) {
       this.enemy.position.x = newpositionX;
       this.enemy.position.y = newpositionY;
     } else {
-      // Hit a wall - choose new direction
+      // Hit a wall, choose a new direction
       this.chooseRandomDirection();
       this.enemy.currentAnimation = this.animation[this.enemy.direction];
     }
   }
 
+  /**
+   * Checks if the movement stays inside the map and avoids collisions
+   */
   isValidMove(positionX, positionY) {
-    // Check map boundaries
     const mapWidth = this.enemy.map.width * Tile.SIZE;
     const mapHeight = this.enemy.map.height * Tile.SIZE;
 
-    if (positionX < 0 || positionX + Enemy.WIDTH > mapWidth) {
-      return false;
-    }
-    if (positionY < 0 || positionY + Enemy.HEIGHT > mapHeight) {
-      return false;
-    }
+    // Prevent leaving map boundaries
+    if (positionX < 0 || positionX + Enemy.WIDTH > mapWidth) return false;
+    if (positionY < 0 || positionY + Enemy.HEIGHT > mapHeight) return false;
 
-    // Check collision layer
+    // Check collision tile under enemy center
     const tileX = Math.floor((positionX + Enemy.WIDTH / 2) / Tile.SIZE);
     const tileY = Math.floor((positionY + Enemy.HEIGHT / 2) / Tile.SIZE);
 
     return this.enemy.map.collisionLayer.getTile(tileX, tileY) === null;
   }
 
+  /**
+   * Returns a random value within the given range
+   */
   getRandomDuration(min, max) {
     return Math.random() * (max - min) + min;
   }

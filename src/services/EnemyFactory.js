@@ -24,17 +24,10 @@ export default class EnemyFactory {
    * @param {Player} player The player reference
    * @returns An instance of an enemy specified by CatType.
    */
-  static createInstance(type, entityDefinition, map, player) {
+  static createInstance(type, entityDefinition, map) {
     const sprites = this.getSpriteSheets(type);
 
-    return new Enemy(
-      entityDefinition,
-      map,
-      player,
-      sprites.walking,
-      sprites.running,
-      type
-    );
+    return new Enemy(entityDefinition, map, sprites.walking, sprites.running);
   }
 
   /**
@@ -78,28 +71,9 @@ export default class EnemyFactory {
 
     const imageNames = spriteMapping[type];
 
-    // ✅ DETAILED DEBUG LOGGING
-    console.log(`🔍 Loading sprites for: ${type}`);
-    console.log(`   Walking image name: ${imageNames.walking}`);
-    console.log(`   Running image name: ${imageNames.running}`);
-
+    // Get walking and running sprites
     const walkingImage = images.get(imageNames.walking);
     const runningImage = images.get(imageNames.running);
-
-    console.log(`   Walking image loaded:`, walkingImage ? "✅ YES" : "❌ NO");
-    console.log(`   Running image loaded:`, runningImage ? "✅ YES" : "❌ NO");
-
-    if (!walkingImage) {
-      console.error(`❌ MISSING IMAGE: ${imageNames.walking}`);
-      console.error(`Available images:`, Array.from(images.keys()));
-      throw new Error(`Missing walking image: ${imageNames.walking}`);
-    }
-
-    if (!runningImage) {
-      console.error(`❌ MISSING IMAGE: ${imageNames.running}`);
-      console.error(`Available images:`, Array.from(images.keys()));
-      throw new Error(`Missing running image: ${imageNames.running}`);
-    }
 
     return {
       walking: Sprite.generateSpritesFromSpriteSheet(

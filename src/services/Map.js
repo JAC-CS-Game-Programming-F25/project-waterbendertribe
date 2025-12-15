@@ -40,12 +40,30 @@ export default class Map {
     );
 
     this.bottomLayer = new Layer(mapDefinition.layers[Layer.BOTTOM], sprites);
-    this.bottomLayerTwo = new Layer(mapDefinition.layers[Layer.BOTTOM_TWO], sprites);
-    this.collisionLayer = new Layer(mapDefinition.layers[Layer.COLLISION], sprites);
+    this.bottomLayerTwo = new Layer(
+      mapDefinition.layers[Layer.BOTTOM_TWO],
+      sprites
+    );
+    this.collisionLayer = new Layer(
+      mapDefinition.layers[Layer.COLLISION],
+      sprites
+    );
     this.topLayer = new Layer(mapDefinition.layers[Layer.TOP], sprites);
 
     // Create player
-    this.player = new Player({ position: new Vector(27,19.5) }, this);
+    this.playerOffsetX = 26.96 * Tile.SIZE;
+    this.playerOffsetY = 19.5 * Tile.SIZE;
+    this.player = new Player(
+      {
+        position: new Vector(this.playerOffsetX, this.playerOffsetY),
+        health: 6,
+        attack: 1,
+        defense: 0,
+        speed: 110,
+      },
+      this
+    );
+
     this.userInterface = new UserInterface(this.player);
 
     // Create camera
@@ -67,38 +85,55 @@ export default class Map {
    */
   createEnemies() {
     const enemies = [];
-
-    const bottomLayerTwoData = this.mapDefinition.layers[Layer.BOTTOM_TWO].data; //spawn enemy on the tiles of bottom layer 2
+    const bottomLayerTwoData = this.mapDefinition.layers[Layer.BOTTOM_TWO].data;
 
     bottomLayerTwoData.forEach((tileId, index) => {
-      if (tileId && tileId !== 0) {
+      if (!tileId) return;
 
-        const tileX = index % this.width;
-        const tileY = Math.floor(index / this.width);
+      const tileX = index % this.width;
+      const tileY = Math.floor(index / this.width);
 
-        const worldX = tileX + 0;
-        const worldY = tileY - 0.2; 
+      // player tile (same logic you used before)
+      const playerTileX = 27;
+      const playerTileY = 19; // because Math.floor(19.5) = 19
 
-        //dont place an enemy on the player tile  
-        const playerTileX = Math.floor(27);
-        const playerTileY = Math.floor(19.5);
+      if (tileX === playerTileX && tileY === playerTileY) return;
 
-        if (tileX === playerTileX && tileY === playerTileY) {
-          return;
-        }
+      // tile-space offsets, converted to pixels
+      const worldX = (tileX - 0.55) * Tile.SIZE + Tile.SIZE / 2;
+      const worldY = (tileY - 0.1) * Tile.SIZE;
 
-        const type = EnemyFactory.getRandomCatType();
-        const enemy = EnemyFactory.createInstance(
-          type,
-          { position: new Vector(worldX, worldY) },
-          this,
-          this.player
-        );
-        enemies.push(enemy);
-      }
+      const type = EnemyFactory.getRandomCatType();
+      const enemy = EnemyFactory.createInstance(
+        type,
+        {
+          position: new Vector(worldX, worldY),
+          health: 6,
+          attack: 1,
+          defense: 0,
+          speed: 100,
+        },
+        this
+      );
+
+      enemies.push(enemy);
     });
 
     return enemies;
+  }
+
+  /**
+   * Spawn random balls on the map
+   */
+  spawnRandomBalls(count) {
+    for (let i = 0; i < count; i++) {
+      const x =
+        Math.random() * (this.width * Tile.SIZE - Tile.SIZE) + Tile.SIZE / 2;
+      const y =
+        Math.random() * (this.height * Tile.SIZE - Tile.SIZE) + Tile.SIZE;
+
+      this.balls.push(new Ball(new Vector(x, y), this));
+    }
   }
 
   /**
@@ -126,21 +161,22 @@ export default class Map {
     this.player.update(dt);
     this.camera.update(dt);
 
-    this.updateCollision(dt);
-    this.updateEntities(dt);
+    this.updatePlayerCollision(dt);
+    this.updateBallCollision(dt);
 
     this.cleanUpEntities();
   }
 
   /**
-   * Collision detection frrom Zelda
+   * Collision for players
    */
-  updateCollision(dt) {
+  updatePlayerCollision(dt) {
     this.enemies.forEach((enemy) => {
       enemy.update(dt);
 
       if (enemy.isDead) return;
 
+      // Player attacks enemy
       if (
         this.player.isClawActive() &&
         this.player.didCollideWithEntity(enemy.hitbox)
@@ -148,19 +184,32 @@ export default class Map {
         this.handleDamage(this.player, enemy);
       }
 
+      // Enemy attacks player
       if (
         enemy.isClawActive() &&
         enemy.didCollideWithEntity(this.player.bodyHitbox)
       ) {
         this.handleDamage(enemy, this.player);
       }
+
+      // Enemy vs Enemy
+      this.enemies.forEach((otherEnemy) => {
+        if (otherEnemy === enemy || otherEnemy.isDead) return;
+
+        if (
+          enemy.isClawActive() &&
+          enemy.didCollideWithEntity(otherEnemy.hitbox)
+        ) {
+          this.handleDamage(enemy, otherEnemy);
+        }
+      });
     });
   }
 
   /**
-   * Apply damage from `attacker` to `receiver` with defense reduction.
+   * Apply damage from atacker to receiver with defense reduction.
    *
-   * Damage formula: max((attacker.strength + 1) - receiver.defense, 1)
+   *damage formula: max((attacker.strength + 1) - receiver.defene, 1)
    */
   handleDamage(attacker, receiver) {
     attacker.deactivateClawHitbox();
@@ -173,37 +222,48 @@ export default class Map {
   }
 
   /**
-   * Update all game entities
+   * Update all ball collision
    */
-  updateEntities(dt) {
-
-    this.balls.forEach((ball) => ball.update(dt));
-
+  updateBallCollision(dt) {
     this.balls.forEach((ball) => {
-      if (ball.isConsumable && !ball.wasConsumed && !ball.cleanUp) {
+      ball.update(dt);
+
+      if (!ball.isConsumable || ball.wasConsumed || ball.cleanUp) return;
+
+      // Ball vs Player
+      if (
+        ball.hitbox &&
+        this.player.bodyHitbox &&
+        ball.hitbox.didCollide(this.player.bodyHitbox)
+      ) {
+        ball.onConsume(this.player);
+      }
+
+      // Ball vs Enemies
+      this.enemies.forEach((enemy) => {
+        if (enemy.isDead) return;
+
         if (
           ball.hitbox &&
-          this.player.bodyHitbox &&
-          ball.hitbox.didCollide(this.player.bodyHitbox)
+          enemy.hitbox &&
+          ball.hitbox.didCollide(enemy.hitbox)
         ) {
-          ball.onConsume(this.player);
+          ball.onConsume(enemy);
         }
-      }
+      });
     });
   }
 
-
   didWin() {
-		return this.enemies.length === 0;
-	}
+    return this.enemies.length === 0;
+  }
 
-	didLose() {
+  didLose() {
     return this.player?.isDead && this.enemies.length > 0;
-	}
-
+  }
 
   /**
-   * Clean up dead entities and consumed items (Zelda-style)
+   * Clean up dead entities and consumed items
    */
   cleanUpEntities() {
     // Remove dead enemies
@@ -224,7 +284,7 @@ export default class Map {
     this.bottomLayer.render();
     this.bottomLayerTwo.render();
 
-    this.collisionLayer.render(); 
+    this.collisionLayer.render();
     this.enemies.forEach((enemy) => {
       enemy.render();
     });

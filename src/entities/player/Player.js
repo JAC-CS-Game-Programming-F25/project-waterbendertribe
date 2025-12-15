@@ -12,24 +12,26 @@ import Hitbox from "../../../lib/Hitbox.js";
 import { images, context, DEBUG, timer } from "../../globals.js";
 
 export default class Player extends GameEntity {
+  // Sprite dimensions and visual scale
   static CAT_WALKING_WIDTH = 32;
   static CAT_WALKING_HEIGHT = 32;
   static CAT_RUNNING_HEIGHT = 32;
   static CAT_RUNNING_WIDTH = 32;
   static SCALE = 1.7;
-  static MAX_SPEED = 50;
 
+  // Invulnerability timing after taking damage
   static INVULNERABLE_DURATION = 1.5;
   static INVULNERABLE_FLASH_INTERVAL = 0.1;
 
+  /**
+   * Creates the player entity, loads sprites, hitboxes, and state machine
+   */
   constructor(entityDefinition = {}, map) {
     super({
       ...entityDefinition,
-      health: 6,
-      strength: 1,
-      defense: 0,
     });
 
+    // Load walking and running animations
     this.walkingSprites = Sprite.generateSpritesFromSpriteSheet(
       images.get(ImageName.RedCatWalking),
       Player.CAT_WALKING_WIDTH,
@@ -44,20 +46,20 @@ export default class Player extends GameEntity {
     this.map = map;
     this.dimensions = new Vector(GameEntity.WIDTH, GameEntity.HEIGHT);
 
-    // Body hitbox (player-specific positioning)
+    // Body hitbox positioned under the sprite for accurate collisions
     this.bodyHitbox = new Hitbox(0, 0, 20, 12, "red");
     this.bodyHitboxOffsets = { x: 8.5, y: 20 };
 
-    this.speed = Player.MAX_SPEED;
-    this.totalHealth = 6;
-    this.health = 6;
-
+    // State machine controls player behavior
     this.stateMachine = this.initializeStateMachine();
     this.sprites = this.walkingSprites;
     this.currentAnimation =
       this.stateMachine.currentState.animation[this.direction];
   }
 
+  /**
+   * Updates movement, animation frame, and hitbox position
+   */
   update(dt) {
     super.update(dt);
     this.currentAnimation.update(dt);
@@ -65,6 +67,9 @@ export default class Player extends GameEntity {
     this.updateBodyHitbox();
   }
 
+  /**
+   * Keeps the body hitbox aligned with the sprite position
+   */
   updateBodyHitbox() {
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y - this.dimensions.y / 2);
@@ -77,10 +82,14 @@ export default class Player extends GameEntity {
     );
   }
 
+  /**
+   * Renders the player sprite and optional debug visuals
+   */
   render() {
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y - this.dimensions.y / 2);
 
+    // Adjust scale based on camera zoom level
     const cameraScale = this.map.camera.scale;
     const effectiveScale = Player.SCALE / cameraScale;
 
@@ -92,6 +101,7 @@ export default class Player extends GameEntity {
     this.sprites[this.currentFrame].render(0, 0);
     context.restore();
 
+    // Debug hitboxes
     if (DEBUG) {
       this.bodyHitbox.render(context);
       if (this.isClawActive()) {
@@ -100,18 +110,25 @@ export default class Player extends GameEntity {
     }
   }
 
-  //  Override: Player-specific invulnerability with timer
+  /**
+   * Enables temporary invulnerability after taking damage
+   */
   becomeInvulnerable() {
     this.isInvulnerable = true;
     this.invulnerabilityTimer = this.startInvulnerabilityTimer();
   }
 
+  /**
+   * Handles flashing effect and timing during invulnerability
+   */
   startInvulnerabilityTimer() {
     const action = () => {
-      this.alpha = this.alpha === 1 ? 0.5 : 1;
+      this.alpha = this.alpha === 1 ? 0.15 : 1;
     };
+
     const interval = Player.INVULNERABLE_FLASH_INTERVAL;
     const duration = Player.INVULNERABLE_DURATION;
+
     const callback = () => {
       this.alpha = 1;
       this.isInvulnerable = false;
@@ -120,7 +137,9 @@ export default class Player extends GameEntity {
     return timer.addTask(action, interval, duration, callback);
   }
 
-  //  Override: Use bodyHitbox instead of base hitbox for collision
+  /**
+   *uses the claw hitbox when attacking, otherwise uses the body hitbox
+   */
   didCollideWithEntity(hitbox) {
     if (this.isClawActive()) {
       return this.clawHitbox.didCollide(hitbox);
@@ -128,6 +147,9 @@ export default class Player extends GameEntity {
     return this.bodyHitbox.didCollide(hitbox);
   }
 
+  /**
+   * Resets player state after death or restart
+   */
   reset() {
     this.health = this.totalHealth;
     this.isInvulnerable = false;
@@ -135,6 +157,9 @@ export default class Player extends GameEntity {
     this.invulnerabilityTimer?.clear();
   }
 
+  /**
+   * Sets up plyer state machine and default state
+   */
   initializeStateMachine() {
     const stateMachine = new StateMachine();
 

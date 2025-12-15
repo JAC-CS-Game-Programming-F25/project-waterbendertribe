@@ -2,6 +2,9 @@ import Direction from "../enums/Direction.js";
 import Tile from "../services/Tile.js";
 import Vector from "../../lib/Vector.js";
 import Hitbox from "../../lib/Hitbox.js";
+import Sounds from "../../lib/Sounds.js";
+import { sounds } from "../globals.js";
+import SoundName from "../enums/SoundName.js";
 
 export default class GameEntity {
   static WIDTH = 32;
@@ -14,10 +17,6 @@ export default class GameEntity {
     this.stateMachine = null;
     this.currentFrame = 0;
     this.sprites = [];
-    this.speed = entityDefinition.speed ?? 1;
-    this.totalHealth = entityDefinition.health ?? 1;
-    this.health = this.totalHealth;
-    this.damage = entityDefinition.damage ?? 1;
     this.hitboxOffsets = entityDefinition.hitboxOffsets ?? new Hitbox();
     this.hitbox = new Hitbox(
       this.position.x + this.hitboxOffsets.position.x,
@@ -26,20 +25,22 @@ export default class GameEntity {
       this.dimensions.y + this.hitboxOffsets.dimensions.y
     );
 
-    //  Shared combat properties
+    //Shared combat properties
+    this.totalHealth = entityDefinition.health ?? 1;
+    this.health = this.totalHealth;
     this.strength = entityDefinition.strength ?? 1;
     this.defense = entityDefinition.defense ?? 0;
+    this.speed = entityDefinition.speed ?? 1;
     this.isDead = false;
 
-    //  Shared claw/weapon hitbox
+    //shared claw/weapon hitbox
     this.clawHitbox = new Hitbox(0, 0, 0, 0);
 
-    //  Shared invulnerability system
+    // Invincibility Frames/ Iframes
     this.isInvulnerable = false;
     this.alpha = 1;
     this.invulnerabilityTimer = null;
 
-    //  Shared speed boost system
     this.speedBoostActive = false;
   }
 
@@ -47,7 +48,7 @@ export default class GameEntity {
     this.stateMachine?.update(dt);
   }
 
-  //  Shared collision detection
+  //shared collision detection
   didCollideWithEntity(hitbox) {
     // Use claw hitbox when attacking, body hitbox otherwise
     if (this.isClawActive()) {
@@ -56,7 +57,7 @@ export default class GameEntity {
     return this.hitbox.didCollide(hitbox);
   }
 
-  //  Shared claw/weapon methods
+  // Check if claw is active
   isClawActive() {
     return this.clawHitbox.dimensions.x > 0 && this.clawHitbox.dimensions.y > 0;
   }
@@ -69,7 +70,7 @@ export default class GameEntity {
     this.clawHitbox.set(0, 0, 0, 0);
   }
 
-  //  Shared damage system
+  //Shared damage system
   receiveDamage(damage) {
     if (this.isDead || this.isInvulnerable) {
       return;
@@ -84,7 +85,7 @@ export default class GameEntity {
     }
   }
 
-  //  Shared invulnerability system (can be overridden)
+  // shared invulnerability system
   becomeInvulnerable() {
     this.isInvulnerable = true;
   }

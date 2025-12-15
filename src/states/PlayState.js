@@ -1,9 +1,16 @@
 import State from "../../lib/State.js";
 import Map from "../services/Map.js";
-import { input, setCanvasSize, context, stateMachine, DEBUG, sounds } from "../globals.js";
+import {
+  input,
+  setCanvasSize,
+  context,
+  stateMachine,
+  DEBUG,
+  sounds,
+} from "../globals.js";
 import SaveManager from "../services/SaveManager.js";
 import GameStateName from "../enums/GameStateName.js";
-import SoundName from '../enums/SoundName.js';
+import SoundName from "../enums/SoundName.js";
 
 /**
  * Main play state
@@ -16,10 +23,9 @@ export default class PlayState extends State {
   }
 
   enter(parameters = {}) {
-
     context.setTransform(1, 0, 0, 1, 0, 0);
     setCanvasSize(1920, 960);
-    
+
     if (parameters.restoreMap && this.map) {
       // Check if map has won or lost, if so reset it
       if (this.map.didWin() || this.map.didLose()) {
@@ -48,7 +54,7 @@ export default class PlayState extends State {
   }
 
   /**
-   * Reset the main map 
+   * Reset the main map
    */
   resetMap() {
     const savedWins = this.map?.wins ?? 0;
@@ -58,17 +64,17 @@ export default class PlayState extends State {
 
   update(dt) {
     sounds.play(SoundName.Panem);
-    
+
     if (this.map) {
       this.map.update(dt);
     }
-  
+
     if (DEBUG) {
       if (input.isKeyPressed("p")) {
         this.goToPlinko();
       }
     }
-   
+
     this.checkWinOrLose();
   }
 

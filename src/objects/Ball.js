@@ -1,13 +1,14 @@
 import Vector from "../../lib/Vector.js";
 import GameObject from "./GameObject.js";
 import Sprite from "../../lib/Sprite.js";
-import { images, timer } from "../globals.js";
+import { images, sounds, timer } from "../globals.js";
 import ImageName from "../enums/ImageName.js";
 import PowerUpType from "../enums/PowerUpType.js";
 import Enemy from "../entities/Enemy.js";
 import Player from "../entities/player/Player.js";
 import EnemyStateName from "../enums/EnemyStateName.js";
 import PowerUp from "../enums/PowerUpType.js";
+import SoundName from "../enums/SoundName.js";
 
 export default class Ball extends GameObject {
   static WIDTH = 32;
@@ -58,14 +59,16 @@ export default class Ball extends GameObject {
 
     // Player  Plinko
     if (consumer instanceof Player) {
-      if (this.map?.switchMap) {
-        this.map.switchMap("PlinkoMap");
+      if (this.map && this.map.playState) {
+        sounds.play(SoundName.PowerUp);
+        this.map.playState.goToPlinko();
       }
       return;
     }
 
     // Enemy timed buff
     if (consumer instanceof Enemy) {
+      sounds.play(SoundName.PowerUp);
       this.applyEnemyPowerUp(randomType, consumer);
     }
   }

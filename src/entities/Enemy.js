@@ -13,67 +13,68 @@ import EnemyAttackState from "../states/enemy/EnemyAttackState.js";
 import Tile from "../services/Tile.js";
 import Player from "./player/Player.js";
 import Ball from "../objects/Ball.js";
+import Color from "../enums/Color.js";
+import InteractType from "../enums/InteractType.js";
 
 export default class Enemy extends GameEntity {
+  // Basic enemy size and behavior settings
   static WIDTH = 32;
   static HEIGHT = 32;
   static SCALE = 1.7;
+
   static PERCEPTION_RADIUS = 150;
   static CHASE_SPEED = 100;
   static WANDER_SPEED = 40;
 
+  // Invulnerability timing after taking damage
   static INVULNERABLE_DURATION = 0.5;
   static INVULNERABLE_FLASH_INTERVAL = 0.08;
 
+  //target selection priority
   static PRIORITY_PLAYER = 3;
   static PRIORITY_BALL = 2;
   static PRIORITY_ENEMY = 1;
 
-  constructor(
-    entityDefinition = {},
-    map,
-    player,
-    walkingSprites,
-    runningSprites,
-    type
-  ) {
+  /**
+   * Creates an enemy with AI, animations, hitboxes, and state machine
+   */
+  constructor(entityDefinition = {}, map, walkingSprites, runningSprites) {
     super({
       ...entityDefinition,
-      health: entityDefinition.health ?? 6,
-      strength: 1,
-      defense: 0,
     });
 
     this.map = map;
-    this.player = player;
-    this.type = type || "Enemy";
+    this.player = this.map.player;
 
+    // Sprite sets for different movement states
     this.walkingSprites = walkingSprites;
     this.runningSprites = runningSprites;
     this.sprites = this.walkingSprites;
 
     this.dimensions = new Vector(Enemy.WIDTH, Enemy.HEIGHT);
-    this.speed = Enemy.WANDER_SPEED;
 
-    // Enemy-specific hitbox positioning
+    // Hitbox for collision and combat detection
     this.hitbox = new Hitbox(0, 0, 20, 12, "red");
     this.hitboxOffsets = { x: 8.5, y: 37 };
 
-    // Enemy-specific invulnerability (manual flash timer)
+    // Invulnerability handling
     this.invulnerabilityTimer = 0;
     this.flashTimer = 0;
 
+    // AI targeting data
     this.perceptionRadius = Enemy.PERCEPTION_RADIUS;
-
-    // AI tracking
     this.currentTarget = null;
     this.targetType = null;
 
+    // State machine controls enemy behavior
     this.stateMachine = this.initializeStateMachine();
     this.currentAnimation =
       this.stateMachine.currentState.animation[this.direction];
   }
 
+  /**
+   * Updates enemy logic, animation, hitbox, and invulnerability state
+   */
   update(dt) {
     super.update(dt);
     this.currentAnimation.update(dt);
@@ -82,6 +83,9 @@ export default class Enemy extends GameEntity {
     this.updateInvulnerability(dt);
   }
 
+  /**
+   * Updates the position of the enemy'shitbox based on its sprite
+   */
   updateBodyHitbox() {
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y - this.dimensions.y / 2);
@@ -89,7 +93,9 @@ export default class Enemy extends GameEntity {
     this.hitbox.set(x + this.hitboxOffsets.x, y + this.hitboxOffsets.y, 20, 12);
   }
 
-  //  Override: Enemy-specific invulnerability with manual countdown
+  /**
+   *Makes the enemy temporarily invulnerable after taking damage
+   */
   becomeInvulnerable() {
     this.isInvulnerable = true;
     this.invulnerabilityTimer = Enemy.INVULNERABLE_DURATION;
@@ -97,6 +103,9 @@ export default class Enemy extends GameEntity {
     this.alpha = 0.3;
   }
 
+  /**
+   * Handles invulnerability timing and flashing effects
+   */
   updateInvulnerability(dt) {
     if (!this.isInvulnerable) return;
 
@@ -114,10 +123,14 @@ export default class Enemy extends GameEntity {
     }
   }
 
+  /**
+   * Renders the enemy sprite and optional debug visuals
+   */
   render() {
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y);
 
+    // Adjust scaling based on camera zoom
     const cameraScale = this.map.camera.scale;
     const effectiveScale = Enemy.SCALE / cameraScale;
 
@@ -129,6 +142,7 @@ export default class Enemy extends GameEntity {
     this.sprites[this.currentFrame].render(0, 0);
     context.restore();
 
+    // Debug visuals
     if (DEBUG) {
       this.hitbox.render(context);
 
@@ -136,14 +150,15 @@ export default class Enemy extends GameEntity {
         this.clawHitbox.render(context);
       }
 
-      // Draw perception radius with color based on target
+      // Draw perception radius with color based on target type
       context.save();
-      let color = "yellow";
+      let color = Color.Yellow;
       if (this.currentTarget) {
-        if (this.targetType === "player") color = "red";
-        else if (this.targetType === "enemy") color = "orange";
-        else if (this.targetType === "ball") color = "cyan";
+        if (this.targetType === InteractType.Player) color = Color.Red;
+        else if (this.targetType === InteractType.Enemy) color = Color.Orange;
+        else if (this.targetType === InteractType.Ball) color = Color.Cyan;
       }
+
       context.strokeStyle = color;
       context.lineWidth = 2;
       context.beginPath();
@@ -159,9 +174,13 @@ export default class Enemy extends GameEntity {
     }
   }
 
+  /**
+   * Finds the best target within perceptio range based on priority and distance
+   */
   findBestTarget() {
     const targets = [];
 
+    // Player detection
     const playerDist = this.getDistanceTo(this.player.position);
     if (playerDist <= this.perceptionRadius) {
       targets.push({
@@ -172,6 +191,7 @@ export default class Enemy extends GameEntity {
       });
     }
 
+    //other enemies detection
     this.map.enemies.forEach((otherEnemy) => {
       if (otherEnemy === this || otherEnemy.isDead) return;
 
@@ -179,13 +199,14 @@ export default class Enemy extends GameEntity {
       if (enemyDist <= this.perceptionRadius) {
         targets.push({
           target: otherEnemy,
-          type: "enemy",
+          type: InteractType.Enemy,
           distance: enemyDist,
           priority: Enemy.PRIORITY_ENEMY,
         });
       }
     });
 
+    //ball detection (disabled when speed boosted)
     if (!this.speedBoostActive) {
       this.map.balls.forEach((ball) => {
         if (ball.cleanUp || ball.wasConsumed) return;
@@ -194,7 +215,7 @@ export default class Enemy extends GameEntity {
         if (ballDist <= this.perceptionRadius) {
           targets.push({
             target: ball,
-            type: "ball",
+            type: InteractType.Ball,
             distance: ballDist,
             priority: Enemy.PRIORITY_BALL,
           });
@@ -204,6 +225,7 @@ export default class Enemy extends GameEntity {
 
     if (targets.length === 0) return null;
 
+    // Sort by priority first, then distance
     targets.sort((a, b) => {
       if (a.priority !== b.priority) {
         return b.priority - a.priority;
@@ -214,8 +236,12 @@ export default class Enemy extends GameEntity {
     return targets[0];
   }
 
+  /**
+   * checks if any valid target is within range and sets it
+   */
   isTargetInRange() {
     const bestTarget = this.findBestTarget();
+
     if (bestTarget) {
       this.currentTarget = bestTarget.target;
       this.targetType = bestTarget.type;
@@ -227,26 +253,22 @@ export default class Enemy extends GameEntity {
     return false;
   }
 
+  /**
+   * Calculates distance from this enemy to a targetposition
+   */
   getDistanceTo(targetPosition) {
     const enemyCenterX = this.position.x + Enemy.WIDTH / 2;
     const enemyCenterY = this.position.y + Enemy.HEIGHT / 2;
 
-    let targetCenterX, targetCenterY;
-
-    if (targetPosition.x !== undefined) {
-      targetCenterX = targetPosition.x;
-      targetCenterY = targetPosition.y;
-    } else {
-      targetCenterX = targetPosition.x;
-      targetCenterY = targetPosition.y;
-    }
-
     return Math.sqrt(
-      Math.pow(targetCenterX - enemyCenterX, 2) +
-        Math.pow(targetCenterY - enemyCenterY, 2)
+      Math.pow(targetPosition.x - enemyCenterX, 2) +
+        Math.pow(targetPosition.y - enemyCenterY, 2)
     );
   }
 
+  /**
+   * determines which direction theenemy should face based on target position
+   */
   getDirectionToTarget() {
     if (!this.currentTarget) return this.direction;
 
@@ -260,6 +282,9 @@ export default class Enemy extends GameEntity {
     }
   }
 
+  /**
+   * Initializes the enemy AI state machine and sets the default state
+   */
   initializeStateMachine() {
     const stateMachine = new StateMachine();
 

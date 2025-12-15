@@ -3,6 +3,8 @@ import State from "../../../lib/State.js";
 import Enemy from "../../entities/Enemy.js";
 import Direction from "../../enums/Direction.js";
 import EnemyStateName from "../../enums/EnemyStateName.js";
+import SoundName from "../../enums/SoundName.js";
+import { sounds } from "../../globals.js";
 
 export default class EnemyAttackState extends State {
   static CLAW_REACH = 20;
@@ -31,7 +33,7 @@ export default class EnemyAttackState extends State {
       [Direction.Right]: new Animation([12, 13, 14, 15, 8, 7], 0.05, 1),
     };
 
-    // Track if hitbox was already activated this attack (Zelda-style)
+    // Track if hitbox was already activated this attack
     this.hitboxActivated = false;
   }
 
@@ -39,6 +41,7 @@ export default class EnemyAttackState extends State {
     this.enemy.sprites = this.enemy.runningSprites;
     this.enemy.currentAnimation = this.animation[this.enemy.direction];
     this.hitboxActivated = false; //Reset flag when entering state
+    sounds.play(SoundName.CatSlash);
   }
 
   exit() {
