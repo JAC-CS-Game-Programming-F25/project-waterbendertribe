@@ -7,39 +7,54 @@ import Player from "../../entities/player/Player.js";
 import Enemy from "../../entities/Enemy.js";
 
 export default class EnemyChasingState extends State {
-  static ATTACK_RANGE = 35; // Stop moving when this close to player
+  static ATTACK_RANGE = 35;
   static PICKUP_RANGE = 30;
+  static SPEED_BOOST = 200;
 
   constructor(enemy) {
     super();
     this.enemy = enemy;
 
-    this.animation = {
+    this.walkAnimation = {
       [Direction.Up]: new Animation([0, 1, 2, 3], 0.08),
       [Direction.Down]: new Animation([8, 9, 10, 11], 0.08),
       [Direction.Left]: new Animation([12, 13, 14, 15], 0.08),
       [Direction.Right]: new Animation([4, 5, 6, 7], 0.08),
     };
 
+    // if the player has speed boost active
+    this.runAnimation = {
+      [Direction.Up]: new Animation([0, 1, 2, 3, 4, 5, 6, 7], 0.05),
+      [Direction.Down]: new Animation([16, 17, 18, 19, 20, 21, 22, 23], 0.05),
+      [Direction.Left]: new Animation([24, 25, 26, 27, 28, 29, 30, 31], 0.05),
+      [Direction.Right]: new Animation([8, 9, 10, 11, 12, 13, 14, 15], 0.05),
+    };
+
     // Cooldown to prevent rapid direction changes
     this.directionUpdateCooldown = 0;
-    this.directionUpdateInterval = 0.2; // Update direction every 0.2 seconds
+    this.directionUpdateInterval = 0.2;
   }
 
   enter() {
-    this.enemy.speed = Enemy.CHASE_SPEED;
     this.directionUpdateCooldown = 0;
+    this.updateSpeedAndAnimation();
   }
 
   update(dt) {
+    this.updateSpeedAndAnimation();
+
     // Check if target is still in range
     if (!this.enemy.isTargetInRange()) {
-      // Lost target - go back to walking
-      this.enemy.changeState(EnemyStateName.Walking);
+      // Lost target go back to appropriate movement state
+      if (this.enemy.speedBoostActive) {
+        this.enemy.changeState(EnemyStateName.Running);
+      } else {
+        this.enemy.changeState(EnemyStateName.Walking);
+      }
       return;
     }
 
-    // Check if we reached a ball (power-up)
+    // Check if we reached a ball power up
     if (this.enemy.targetType === "ball" && this.isInPickupRange()) {
       this.pickupBall();
       this.enemy.changeState(EnemyStateName.Idling);
@@ -53,22 +68,45 @@ export default class EnemyChasingState extends State {
       this.isInAttackRange()
     ) {
       this.enemy.direction = this.enemy.getDirectionToTarget();
-      this.enemy.currentAnimation = this.animation[this.enemy.direction];
+      this.updateCurrentAnimation();
       this.enemy.changeState(EnemyStateName.Attacking);
       return;
     }
 
-    // Update direction cooldown
     this.directionUpdateCooldown -= dt;
 
     // Only update direction periodically for smoother movement
     if (this.directionUpdateCooldown <= 0) {
       this.enemy.direction = this.enemy.getDirectionToTarget();
-      this.enemy.currentAnimation = this.animation[this.enemy.direction];
+      this.updateCurrentAnimation();
       this.directionUpdateCooldown = this.directionUpdateInterval;
     }
 
     this.chase(dt);
+  }
+
+  /**
+   * update speed and sprites based on speedBoostActive
+   * This is called every frame to ensure animations stay correct
+   */
+  updateSpeedAndAnimation() {
+    if (this.enemy.speedBoostActive) {
+      this.enemy.speed = EnemyChasingState.SPEED_BOOST; // Faster when boosted
+      this.enemy.sprites = this.enemy.runningSprites;
+    } else {
+      this.enemy.speed = Enemy.CHASE_SPEED;
+      this.enemy.sprites = this.enemy.walkingSprites;
+    }
+  }
+
+  /**
+   * Update the current animation based on boost status
+   */
+  updateCurrentAnimation() {
+    const animationSet = this.enemy.speedBoostActive
+      ? this.runAnimation
+      : this.walkAnimation;
+    this.enemy.currentAnimation = animationSet[this.enemy.direction];
   }
 
   /**

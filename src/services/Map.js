@@ -46,11 +46,16 @@ export default class Map {
     );
     this.topLayer = new Layer(mapDefinition.layers[Layer.TOP], sprites);
 
-    // Create player
     this.player = new Player(
-      { position: new Vector(20 * Tile.SIZE, 20 * Tile.SIZE) },
+      {
+        position: new Vector(
+          27 * Tile.SIZE + Tile.SIZE / 2, // center of tile
+          (19.5 + 1) * Tile.SIZE
+        ),
+      },
       this
     );
+
     this.userInterface = new UserInterface(this.player);
 
     // Create camera
@@ -76,40 +81,32 @@ export default class Map {
   createEnemies() {
     const enemies = [];
 
-    const spawnPositions = [
-      new Vector(10 * Tile.SIZE, 10 * Tile.SIZE),
-      new Vector(15 * Tile.SIZE, 5 * Tile.SIZE),
-      new Vector(5 * Tile.SIZE, 15 * Tile.SIZE),
-      new Vector(25 * Tile.SIZE, 25 * Tile.SIZE),
-      new Vector(20 * Tile.SIZE, 15 * Tile.SIZE),
-    ];
+    const bottomLayerTwoData = this.mapDefinition.layers[Layer.BOTTOM_TWO].data;
 
-    const bottomLayerTwoData = this.mapDefinition.layers[Layer.BOTTOM_TWO].data; //spawn enemy on the tiles of bottom layer 2
     bottomLayerTwoData.forEach((tileId, index) => {
-      if (tileId && tileId !== 0) {
-        const tileX = index % this.width;
-        const tileY = Math.floor(index / this.width);
+      if (!tileId) return;
 
-        const worldX = tileX + 0;
-        const worldY = tileY - 0.2;
+      const tileX = index % this.width;
+      const tileY = Math.floor(index / this.width);
 
-        //dont place an enemy on the player tile
-        const playerTileX = Math.floor(27);
-        const playerTileY = Math.floor(19.5);
+      // Prevent spawning on player tile
+      const playerTileX = 27;
+      const playerTileY = 19;
 
-        if (tileX === playerTileX && tileY === playerTileY) {
-          return;
-        }
+      if (tileX === playerTileX && tileY === playerTileY) return;
 
-        const type = EnemyFactory.getRandomCatType();
-        const enemy = EnemyFactory.createInstance(
-          type,
-          { position: new Vector(worldX, worldY) },
-          this,
-          this.player
-        );
-        enemies.push(enemy);
-      }
+      const worldX = tileX * Tile.SIZE + Tile.SIZE / 2;
+      const worldY = (tileY + 1) * Tile.SIZE;
+
+      const type = EnemyFactory.getRandomCatType();
+      const enemy = EnemyFactory.createInstance(
+        type,
+        { position: new Vector(worldX, worldY) },
+        this,
+        this.player
+      );
+
+      enemies.push(enemy);
     });
 
     return enemies;
@@ -176,7 +173,7 @@ export default class Map {
         this.handleDamage(enemy, this.player);
       }
 
-      // Enemy vs Enemy combat (NEW!)
+      // Enemy vs Enemy combat
       this.enemies.forEach((otherEnemy) => {
         if (otherEnemy === enemy || otherEnemy.isDead) return;
 
@@ -186,6 +183,17 @@ export default class Map {
           enemy.didCollideWithEntity(otherEnemy.hitbox)
         ) {
           this.handleDamage(enemy, otherEnemy);
+        }
+      });
+      this.balls.forEach((ball) => {
+        if (ball.isConsumable && !ball.wasConsumed && !ball.cleanUp) {
+          if (
+            ball.hitbox &&
+            enemy.hitbox &&
+            ball.hitbox.didCollide(enemy.hitbox)
+          ) {
+            ball.onConsume(enemy);
+          }
         }
       });
     });

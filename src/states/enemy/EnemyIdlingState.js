@@ -21,7 +21,9 @@ export default class EnemyIdlingState extends State {
   }
 
   enter() {
+    this.enemy.sprites = this.enemy.walkingSprites;
     this.enemy.currentAnimation = this.animation[this.enemy.direction];
+
     this.idleDuration = this.getRandomDuration(
       EnemyIdlingState.IDLE_DURATION_MIN,
       EnemyIdlingState.IDLE_DURATION_MAX
@@ -31,18 +33,22 @@ export default class EnemyIdlingState extends State {
   }
 
   update(dt) {
-    // Check if player is in range
+    // Check if target is in range - switch to chasing
     if (this.enemy.isTargetInRange()) {
       this.enemy.changeState(EnemyStateName.Chasing);
+      return;
     }
   }
 
   async startTimer() {
     await timer.wait(this.idleDuration);
 
-    // After idling, start walking
     if (this.enemy.stateMachine.currentState === this) {
-      this.enemy.changeState(EnemyStateName.Walking);
+      if (this.enemy.speedBoostActive) {
+        this.enemy.changeState(EnemyStateName.Running);
+      } else {
+        this.enemy.changeState(EnemyStateName.Walking);
+      }
     }
   }
 

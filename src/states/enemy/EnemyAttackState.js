@@ -1,5 +1,6 @@
 import Animation from "../../../lib/Animation.js";
 import State from "../../../lib/State.js";
+import Enemy from "../../entities/Enemy.js";
 import Direction from "../../enums/Direction.js";
 import EnemyStateName from "../../enums/EnemyStateName.js";
 
@@ -37,24 +38,28 @@ export default class EnemyAttackState extends State {
   enter() {
     this.enemy.sprites = this.enemy.runningSprites;
     this.enemy.currentAnimation = this.animation[this.enemy.direction];
-    this.hitboxActivated = false; // Reset flag when entering state
+    this.hitboxActivated = false; //Reset flag when entering state
   }
 
   exit() {
-    // Clear hitbox when exiting (Zelda-style)
     this.enemy.clawHitbox.set(0, 0, 0, 0);
-    this.enemy.sprites = this.enemy.walkingSprites;
+
+    this.enemy.sprites = this.enemy.speedBoostActive
+      ? this.enemy.runningSprites
+      : this.enemy.walkingSprites;
   }
 
   update() {
-    // Return to idle when animation finishes
     if (this.enemy.currentAnimation.isDone()) {
       this.enemy.currentAnimation.refresh();
-      this.enemy.changeState(EnemyStateName.Idling);
+
+      if (this.enemy.speedBoostActive) {
+        this.enemy.changeState(EnemyStateName.Running);
+      } else {
+        this.enemy.changeState(EnemyStateName.Walking);
+      }
     }
 
-    // Activate hitbox halfway through animation (Zelda-style)
-    // Only activate once per attack to prevent multiple hits
     if (this.enemy.currentAnimation.isHalfwayDone() && !this.hitboxActivated) {
       this.setClawHitbox();
       this.hitboxActivated = true;
@@ -62,10 +67,10 @@ export default class EnemyAttackState extends State {
   }
 
   /**
-   * Set the claw hitbox based on enemy direction (Zelda-style)
+   * Set the claw hitbox based on enemy direction
    */
   setClawHitbox() {
-    const scale = this.enemy.constructor.SCALE || 1;
+    const scale = Enemy.SCALE || 1;
     const spriteWidth = 32 * scale;
     const spriteHeight = 32 * scale;
 

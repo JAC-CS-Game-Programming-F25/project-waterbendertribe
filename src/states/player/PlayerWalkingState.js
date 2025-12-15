@@ -34,8 +34,10 @@ export default class PlayerWalkingState extends State {
   }
 
   handleMovement(dt) {
-    if (input.isKeyPressed(Input.KEYS.SHIFT)) {
-      this.player.isRunning = !this.player.isRunning;
+    // ✅ CRITICAL: If speed boost active while walking, switch to Running
+    if (this.player.speedBoostActive) {
+      this.player.changeState(CatStateName.Running);
+      return;
     }
 
     if (input.isKeyPressed(Input.KEYS.SPACE)) {
@@ -49,11 +51,6 @@ export default class PlayerWalkingState extends State {
       !input.isKeyHeld(Input.KEYS.D)
     ) {
       this.player.changeState(CatStateName.Idling);
-      return;
-    }
-
-    if (this.player.isRunning) {
-      this.player.changeState(CatStateName.Running);
       return;
     }
 
@@ -103,7 +100,6 @@ export default class PlayerWalkingState extends State {
   }
 
   isValidMove(positionX, positionY) {
-    // Calculate where the body hitbox would be at the new position
     const offsetX = this.player.bodyHitboxOffsets.x;
     const offsetY = this.player.bodyHitboxOffsets.y;
     const hitboxWidth = this.player.bodyHitbox.dimensions.x;
@@ -113,7 +109,6 @@ export default class PlayerWalkingState extends State {
     const collisionYOffset = -20;
     const insetAmount = 10;
 
-    // Check three points across the hitbox width
     const leftX = Math.floor((positionX + offsetX + insetAmount) / Tile.SIZE);
     const centerX = Math.floor(
       (positionX + offsetX + hitboxWidth / 2) / Tile.SIZE

@@ -112,18 +112,19 @@ export default class PlinkoBoard {
     const types = [
       PowerUpType.AttackIncrease,
       PowerUpType.SpeedPowerUp,
-      PowerUpType.DefencePowerUp
+      PowerUpType.DefencePowerUp,
     ];
 
     // Place power-ups between beams
     if (this.beams.length >= 2) {
       for (let i = 0; i < this.beams.length - 1; i++) {
         const left = this.beams[i];
-        const right = this.beams[i +1];
-        
+        const right = this.beams[i + 1];
+
         // Calculate desired center position between beams
         const centerX = (left.body.position.x + right.body.position.x) / 2;
-        const centerY = Math.min(left.body.position.y, right.body.position.y) - 40;
+        const centerY =
+          Math.min(left.body.position.y, right.body.position.y) - 40;
 
         // Rectangle constructor expects top-left; convert from center
         const x = centerX - PowerUp.WIDTH / 2;
@@ -138,7 +139,7 @@ export default class PlinkoBoard {
         if (powerUp) {
           powerUp.playState = this.playState;
         }
-        
+
         if (powerUp) {
           this.powerUps.push(powerUp);
         }
@@ -165,10 +166,9 @@ export default class PlinkoBoard {
   //   });
   // }
 
-
   createBeams() {
     const beamDisplayed = 4;
-    const beamHeight = PlinkoBeam.HEIGHT + 50 ;
+    const beamHeight = PlinkoBeam.HEIGHT + 50;
     const y = CANVAS_HEIGHT - beamHeight / 4;
     const spacing = CANVAS_WIDTH / (beamDisplayed + 1);
 
@@ -178,7 +178,6 @@ export default class PlinkoBoard {
       this.beams.push(beam);
     }
   }
-
 
   /**
    * Get the spanws balls
@@ -234,9 +233,9 @@ export default class PlinkoBoard {
     this.powerUps = this.powerUps.filter((powerUp) => !powerUp.shouldCleanUp);
   }
 
-   cleanUpPowerUps() {
+  cleanUpPowerUps() {
     // Remove consumed power-ups
-    this.powerUps = this.powerUps.filter(powerUp => {
+    this.powerUps = this.powerUps.filter((powerUp) => {
       if (powerUp.shouldCleanUp) {
         return false;
       }

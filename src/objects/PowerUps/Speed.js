@@ -1,7 +1,7 @@
 import PowerUp from "./PowerUp.js";
 import GameMatter from "../GameMatter.js";
 import CatStateName from "../../enums/CatStateName.js";
-import { timer, matter, world} from "../../globals.js";
+import { timer, matter, world } from "../../globals.js";
 
 export default class SpeedPowerUp extends PowerUp {
   static SPRITE_MEASUREMENTS = [{ x: 32, y: 4, width: 31, height: 25 }];
@@ -18,15 +18,18 @@ export default class SpeedPowerUp extends PowerUp {
   }
 
   onConsume() {
-
     // Get the player from playState (on the main map)
-    if (this.playState && this.playState.mainMap && this.playState.mainMap.player) {
+    if (
+      this.playState &&
+      this.playState.mainMap &&
+      this.playState.mainMap.player
+    ) {
       const player = this.playState.mainMap.player;
-      
+
       // // Apply speed boost and flag forced running
       player.speedBoostActive = true;
       player.isRunning = true;
-      
+
       player.changeState(CatStateName.Running);
 
       // Reset after duration (use timer duration as the delay)
@@ -35,14 +38,14 @@ export default class SpeedPowerUp extends PowerUp {
         0,
         SpeedPowerUp.SPEED_DURATION,
         () => {
-         player.speedBoostActive = false;
-         player.isRunning = false;
+          player.speedBoostActive = false;
+          player.isRunning = false;
           // Return to idle after boost ends
           player.changeState(CatStateName.Idling);
         }
       );
     }
     // Return to main map
-       super.onConsume();
+    super.onConsume();
   }
 }

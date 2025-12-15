@@ -2,6 +2,7 @@ import Animation from "../../../lib/Animation.js";
 import State from "../../../lib/State.js";
 import Direction from "../../enums/Direction.js";
 import CatStateName from "../../enums/CatStateName.js";
+import Player from "../../entities/player/Player.js";
 
 export default class PlayerAttackState extends State {
   static CLAW_REACH = 20;
@@ -15,10 +16,6 @@ export default class PlayerAttackState extends State {
     [Direction.Down]: { x: -9, y: -20 },
   };
 
-  /**
-   * In this state, the cat player attacks with their claws.
-   * Creates a temporary hitbox similar to Zelda's sword swing.
-   */
   constructor(player) {
     super();
     this.player = player;
@@ -30,42 +27,44 @@ export default class PlayerAttackState extends State {
       [Direction.Right]: new Animation([12, 13, 14, 15, 8, 7], 0.05, 1),
     };
 
-    // Track if hitbox was already activated this attack (Zelda-style)
     this.hitboxActivated = false;
   }
 
   enter() {
     this.player.sprites = this.player.runningSprites;
     this.player.currentAnimation = this.animation[this.player.direction];
-    this.hitboxActivated = false; // Reset flag when entering state
+    this.hitboxActivated = false;
   }
 
   exit() {
-    // Clear hitbox when exiting (Zelda-style)
+    // Clear hitbox when exiting
     this.player.clawHitbox.set(0, 0, 0, 0);
-    this.player.sprites = this.player.walkingSprites;
+
+    this.player.sprites = this.player.speedBoostActive
+      ? this.player.runningSprites
+      : this.player.walkingSprites;
   }
 
   update() {
-    // Return to idle when animation finishes
+    // Return to appropriate state when animation finishes
     if (this.player.currentAnimation.isDone()) {
       this.player.currentAnimation.refresh();
-      this.player.changeState(CatStateName.Idling);
+      if (this.player.speedBoostActive) {
+        this.player.changeState(CatStateName.Running);
+      } else {
+        this.player.changeState(CatStateName.Idling);
+      }
     }
 
-    // Activate hitbox halfway through animation (Zelda-style)
-    // Only activate once per attack to prevent multiple hits
+    // Activate hitbox halfway through animation
     if (this.player.currentAnimation.isHalfwayDone() && !this.hitboxActivated) {
       this.setClawHitbox();
       this.hitboxActivated = true;
     }
   }
 
-  /**
-   * Set the claw hitbox based on player direction (Zelda-style)
-   */
   setClawHitbox() {
-    const scale = this.player.constructor.SCALE || 1;
+    const scale = Player.SCALE || 1;
     const spriteWidth = 32 * scale;
     const spriteHeight = 32 * scale;
 
@@ -92,9 +91,6 @@ export default class PlayerAttackState extends State {
     );
   }
 
-  /**
-   * Returns hitbox configuration for the given direction
-   */
   getHitboxConfig(direction, baseX, baseY, spriteWidth, spriteHeight, offset) {
     const { CLAW_REACH, CLAW_WIDTH, CLAW_HEIGHT } = PlayerAttackState;
 

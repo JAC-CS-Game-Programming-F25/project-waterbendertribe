@@ -17,15 +17,18 @@ export default class Player extends GameEntity {
   static CAT_RUNNING_HEIGHT = 32;
   static CAT_RUNNING_WIDTH = 32;
   static SCALE = 1.7;
-  static MAX_SPEED = 100;
-  static MAX_HEALTH = 6;
+  static MAX_SPEED = 50;
 
-  // Invulnerability settings
   static INVULNERABLE_DURATION = 1.5;
   static INVULNERABLE_FLASH_INTERVAL = 0.1;
 
   constructor(entityDefinition = {}, map) {
-    super(entityDefinition);
+    super({
+      ...entityDefinition,
+      health: 6,
+      strength: 1,
+      defense: 0,
+    });
 
     this.walkingSprites = Sprite.generateSpritesFromSpriteSheet(
       images.get(ImageName.RedCatWalking),
@@ -40,33 +43,19 @@ export default class Player extends GameEntity {
 
     this.map = map;
     this.dimensions = new Vector(GameEntity.WIDTH, GameEntity.HEIGHT);
-    this.isRunning = false;
 
-    // Body hitbox
+    // Body hitbox (player-specific positioning)
     this.bodyHitbox = new Hitbox(0, 0, 20, 12, "red");
     this.bodyHitboxOffsets = { x: 8.5, y: 20 };
 
-    this.clawHitbox = new Hitbox(0, 0, 0, 0, "yellow");
-
-    //States
     this.speed = Player.MAX_SPEED;
-    this.totalHealth = Player.MAX_HEALTH;
-    this.health = Player.MAX_HEALTH;
-    this.strength = 1;
-    this.defense = 0;
-
-    // Invulnerability system
-    this.isInvulnerable = false;
-    this.alpha = 1;
-    this.invulnerabilityTimer = null;
+    this.totalHealth = 6;
+    this.health = 6;
 
     this.stateMachine = this.initializeStateMachine();
     this.sprites = this.walkingSprites;
     this.currentAnimation =
       this.stateMachine.currentState.animation[this.direction];
-
-    // Speed boost flag (set by power-ups)
-    this.speedBoostActive = false;
   }
 
   update(dt) {
@@ -77,7 +66,6 @@ export default class Player extends GameEntity {
   }
 
   updateBodyHitbox() {
-    // NOW: position is already in pixels
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y - this.dimensions.y / 2);
 
@@ -90,7 +78,6 @@ export default class Player extends GameEntity {
   }
 
   render() {
-    // NOW: position is already in pixels
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y - this.dimensions.y / 2);
 
@@ -100,8 +87,6 @@ export default class Player extends GameEntity {
     context.save();
     context.translate(x, y);
     context.scale(effectiveScale, effectiveScale);
-
-    // Apply alpha for invulnerability flashing
     context.globalAlpha = this.alpha;
 
     this.sprites[this.currentFrame].render(0, 0);
@@ -109,74 +94,18 @@ export default class Player extends GameEntity {
 
     if (DEBUG) {
       this.bodyHitbox.render(context);
-      if (
-        this.clawHitbox.dimensions.x > 0 &&
-        this.clawHitbox.dimensions.y > 0
-      ) {
+      if (this.isClawActive()) {
         this.clawHitbox.render(context);
       }
     }
   }
 
-  activateClawHitbox(x, y, width, height) {
-    this.clawHitbox.set(x, y, width, height);
-  }
-
-  deactivateClawHitbox() {
-    this.clawHitbox.set(0, 0, 0, 0);
-  }
-
-  isClawActive() {
-    return this.clawHitbox.dimensions.x > 0 && this.clawHitbox.dimensions.y > 0;
-  }
-
-  /**
-   * Check collision with entity using AABB collision detection
-   * Uses CLAW hitbox when attacking, BODY hitbox otherwise
-   * @param {Hitbox} hitbox - The hitbox to check collision against
-   * @returns {boolean} Whether collision occurred
-   */
-  didCollideWithEntity(hitbox) {
-    // If claw is active (attacking), check claw collision
-    if (this.isClawActive()) {
-      return this.clawHitbox.didCollide(hitbox);
-    }
-
-    return this.bodyHitbox.didCollide(hitbox);
-  }
-
-  /**
-   * This will setup damage taken
-   */
-  receiveDamage(damage) {
-    if (this.isInvulnerable) {
-      return;
-    }
-
-    this.health -= damage;
-
-    // Activate invulnerability after taking damage
-    this.becomeInvulnerable();
-
-    if (this.health <= 0) {
-      this.health = 0;
-      this.isDead = true;
-    }
-
-    // sounds.play(SoundName.HitPlayer);
-  }
-
-  /**
-   * Reference to Zelda this will start i-frames
-   */
+  //  Override: Player-specific invulnerability with timer
   becomeInvulnerable() {
     this.isInvulnerable = true;
     this.invulnerabilityTimer = this.startInvulnerabilityTimer();
   }
 
-  /**
-   * This is the timer of how long the invulnerability lasts
-   */
   startInvulnerabilityTimer() {
     const action = () => {
       this.alpha = this.alpha === 1 ? 0.5 : 1;
@@ -191,11 +120,16 @@ export default class Player extends GameEntity {
     return timer.addTask(action, interval, duration, callback);
   }
 
-  /**
-   * Once Game over this will reset the player state
-   */
+  //  Override: Use bodyHitbox instead of base hitbox for collision
+  didCollideWithEntity(hitbox) {
+    if (this.isClawActive()) {
+      return this.clawHitbox.didCollide(hitbox);
+    }
+    return this.bodyHitbox.didCollide(hitbox);
+  }
+
   reset() {
-    this.health = Player.MAX_HEALTH;
+    this.health = this.totalHealth;
     this.isInvulnerable = false;
     this.alpha = 1;
     this.invulnerabilityTimer?.clear();
