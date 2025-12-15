@@ -4,6 +4,9 @@ import ImageName from "../enums/ImageName.js";
 import { images } from "../globals.js";
 import { context } from "../globals.js";
 
+/**
+ * UserInterface to display hearts on the top left of the screen
+ */
 export default class UserInterface {
   static EMPTY_HEART = 0;
   static QUARTER_HEART = 1;
@@ -13,7 +16,7 @@ export default class UserInterface {
 
   static HEART_WIDTH = 16;
   static HEART_HEIGHT = 16;
-  static SCALE = 2;
+  static SCALE = 3;
 
   /**
    * Displays the number of hearts in the top-left corner.

@@ -2,12 +2,17 @@ import Animation from "../../../lib/Animation.js";
 import State from "../../../lib/State.js";
 import Direction from "../../enums/Direction.js";
 import CatStateName from "../../enums/CatStateName.js";
+import Player from "../../entities/player/Player.js";
+import { sounds } from "../../globals.js";
+import SoundName from "../../enums/SoundName.js";
 
 export default class PlayerAttackState extends State {
+  // Size and reach of the claw attack
   static CLAW_REACH = 20;
   static CLAW_WIDTH = 20;
   static CLAW_HEIGHT = 20;
 
+  // Direction based offsets to position the claw correctly
   static OFFSETS = {
     [Direction.Left]: { x: 6, y: -2 },
     [Direction.Right]: { x: -25, y: -2 },
@@ -16,13 +21,13 @@ export default class PlayerAttackState extends State {
   };
 
   /**
-   * In this state, the cat player attacks with their claws.
-   * Creates a temporary hitbox similar to Zelda's sword swing.
+   * Handles player behavior while attacking
    */
   constructor(player) {
     super();
     this.player = player;
 
+    // Attack animations for each direction
     this.animation = {
       [Direction.Up]: new Animation([4, 5, 6, 7, 0, 1], 0.05, 1),
       [Direction.Down]: new Animation([20, 21, 22, 23, 16, 17], 0.05, 1),
@@ -30,31 +35,50 @@ export default class PlayerAttackState extends State {
       [Direction.Right]: new Animation([12, 13, 14, 15, 8, 7], 0.05, 1),
     };
 
-    // Track if hitbox was already activated this attack (Zelda-style)
+    // Prevents hitbox from activating more than once per attack
     this.hitboxActivated = false;
   }
 
+  /**
+   * Called when the attack state begins
+   */
   enter() {
+    // Use running sprites during attack
     this.player.sprites = this.player.runningSprites;
     this.player.currentAnimation = this.animation[this.player.direction];
-    this.hitboxActivated = false; // Reset flag when entering state
+    this.hitboxActivated = false;
+    sounds.play(SoundName.CatSlash);
   }
 
+  /**
+   * Cleans up when leaving the attack state
+   */
   exit() {
-    // Clear hitbox when exiting (Zelda-style)
+    // Remove the claw hitbox
     this.player.clawHitbox.set(0, 0, 0, 0);
-    this.player.sprites = this.player.walkingSprites;
+
+    // Restore correct sprite set after attack
+    this.player.sprites = this.player.speedBoostActive
+      ? this.player.runningSprites
+      : this.player.walkingSprites;
   }
 
+  /**
+   * Updates attack animation and handles state transitions
+   */
   update() {
-    // Return to idle when animation finishes
+    // When the attack animation ends, return to movement
     if (this.player.currentAnimation.isDone()) {
       this.player.currentAnimation.refresh();
-      this.player.changeState(CatStateName.Idling);
+
+      if (this.player.speedBoostActive) {
+        this.player.changeState(CatStateName.Running);
+      } else {
+        this.player.changeState(CatStateName.Idling);
+      }
     }
 
-    // Activate hitbox halfway through animation (Zelda-style)
-    // Only activate once per attack to prevent multiple hits
+    // Activate the claw hitbox halfway through the animation
     if (this.player.currentAnimation.isHalfwayDone() && !this.hitboxActivated) {
       this.setClawHitbox();
       this.hitboxActivated = true;
@@ -62,15 +86,15 @@ export default class PlayerAttackState extends State {
   }
 
   /**
-   * Set the claw hitbox based on player direction (Zelda-style)
+   * Positions and enables the claw hitbox based on player direction
    */
   setClawHitbox() {
-    const scale = this.player.constructor.SCALE || 1;
+    const scale = Player.SCALE || 1;
     const spriteWidth = 32 * scale;
     const spriteHeight = 32 * scale;
 
-    const baseX = this.player.canvasPosition.x;
-    const baseY = this.player.canvasPosition.y - this.player.dimensions.y / 2;
+    const baseX = this.player.position.x;
+    const baseY = this.player.position.y - this.player.dimensions.y / 2;
 
     const direction = this.player.direction;
     const offset = PlayerAttackState.OFFSETS[direction];
@@ -93,7 +117,7 @@ export default class PlayerAttackState extends State {
   }
 
   /**
-   * Returns hitbox configuration for the given direction
+   * Calculates the claw hitbox size and position for each direction
    */
   getHitboxConfig(direction, baseX, baseY, spriteWidth, spriteHeight, offset) {
     const { CLAW_REACH, CLAW_WIDTH, CLAW_HEIGHT } = PlayerAttackState;

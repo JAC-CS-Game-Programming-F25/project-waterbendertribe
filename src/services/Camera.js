@@ -1,11 +1,12 @@
 import Vector from "../../lib/Vector.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals.js";
+import Player from "../entities/player/Player.js";
 
 /**
- * A simple camera that follows the player in a top-down 2D game.
+ * A simple camera that follows the player in a top down 2D game.
  */
 export default class Camera {
-  // Camera viewport size (how much of the world you see)
+  //camera viewport size how much of the world you see
   static VIEWPORT_WIDTH = 640;
   static VIEWPORT_HEIGHT = 640;
 
@@ -25,41 +26,36 @@ export default class Camera {
   }
 
   /**
-   * Updates the camera's position to follow the player.
+   * Upates the camera's position to follow the player.
    *
    * @param {number} dt - Delta time, the time passed since the last frame.
    */
   update(dt) {
-    // Get player's actual sprite size (accounting for scale)
-    const playerScale = this.player.constructor.SCALE || 1;
-    const spriteWidth = 32 * playerScale; // e.g., 64 if scale is 2
-    const spriteHeight = 32 * playerScale; // e.g., 64 if scale is 2
+    this.scale = Math.min(
+      CANVAS_WIDTH / this.viewportWidth,
+      CANVAS_HEIGHT / this.viewportHeight
+    );
 
-    // Center of player sprite in world coordinates
-    const playerCenterX = this.player.canvasPosition.x + spriteWidth / 2;
-    const playerCenterY = this.player.canvasPosition.y + spriteHeight / 2;
+    const playerScale = Player.SCALE || 1;
+    const spriteSize = 32 * playerScale;
 
-    // Position camera so player center is at viewport center
-    let targetX = playerCenterX - this.viewportWidth / 2;
-    let targetY = playerCenterY - this.viewportHeight / 2;
+    const playerCenterX = this.player.position.x + spriteSize / 2;
+    const playerCenterY = this.player.position.y + spriteSize / 2;
 
-    // Clamp to world boundaries
-    const maxX = this.worldWidth - this.viewportWidth;
-    const maxY = this.worldHeight - this.viewportHeight;
+    //Visible area in WORLD units
+    const viewWidth = CANVAS_WIDTH / this.scale;
+    const viewHeight = CANVAS_HEIGHT / this.scale;
 
-    if (maxX > 0) {
-      targetX = Math.max(0, Math.min(maxX, targetX));
-    } else {
-      // World smaller than viewport - center the world
-      targetX = maxX / 2;
-    }
+    // center camera on player
+    let targetX = playerCenterX - viewWidth / 2;
+    let targetY = playerCenterY - viewHeight / 2;
 
-    if (maxY > 0) {
-      targetY = Math.max(0, Math.min(maxY, targetY));
-    } else {
-      // World smaller than viewport - center the world
-      targetY = maxY / 2;
-    }
+    // clamp so it never shows outside the map
+    const maxX = this.worldWidth - viewWidth;
+    const maxY = this.worldHeight - viewHeight;
+
+    targetX = Math.max(0, Math.min(maxX, targetX));
+    targetY = Math.max(0, Math.min(maxY, targetY));
 
     this.position.x = Math.round(targetX);
     this.position.y = Math.round(targetY);

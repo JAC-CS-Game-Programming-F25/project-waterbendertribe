@@ -2,32 +2,21 @@ import Direction from "../enums/Direction.js";
 import Tile from "../services/Tile.js";
 import Vector from "../../lib/Vector.js";
 import Hitbox from "../../lib/Hitbox.js";
+import Sounds from "../../lib/Sounds.js";
+import { sounds } from "../globals.js";
+import SoundName from "../enums/SoundName.js";
 
 export default class GameEntity {
   static WIDTH = 32;
   static HEIGHT = 48;
 
-  /**
-   * The base class to be extended by all entities in the game.
-   * Right now we just have one Player character, but this could
-   * be extended to implement NPCs (Non Player Characters) as well.
-   *
-   * @param {object} entityDefinition
-   */
   constructor(entityDefinition = {}) {
     this.position = entityDefinition.position ?? new Vector();
-    this.canvasPosition = new Vector(
-      Math.floor(this.position.x * Tile.SIZE),
-      Math.floor(this.position.y * Tile.SIZE)
-    );
     this.dimensions = entityDefinition.dimensions ?? new Vector();
     this.direction = entityDefinition.direction ?? Direction.Down;
     this.stateMachine = null;
     this.currentFrame = 0;
     this.sprites = [];
-    this.speed = entityDefinition.speed ?? 1;
-    this.totalHealth = entityDefinition.health ?? 1;
-    this.damage = entityDefinition.damage ?? 1;
     this.hitboxOffsets = entityDefinition.hitboxOffsets ?? new Hitbox();
     this.hitbox = new Hitbox(
       this.position.x + this.hitboxOffsets.position.x,
@@ -35,20 +24,70 @@ export default class GameEntity {
       this.dimensions.x + this.hitboxOffsets.dimensions.x,
       this.dimensions.y + this.hitboxOffsets.dimensions.y
     );
+
+    //Shared combat properties
+    this.totalHealth = entityDefinition.health ?? 1;
+    this.health = this.totalHealth;
+    this.strength = entityDefinition.strength ?? 1;
+    this.defense = entityDefinition.defense ?? 0;
+    this.speed = entityDefinition.speed ?? 1;
+    this.isDead = false;
+
+    //shared claw/weapon hitbox
+    this.clawHitbox = new Hitbox(0, 0, 0, 0);
+
+    // Invincibility Frames/ Iframes
+    this.isInvulnerable = false;
+    this.alpha = 1;
+    this.invulnerabilityTimer = null;
+
+    this.speedBoostActive = false;
   }
 
-  /**
-   * At this time, stateMachine will be null for Pokemon.
-   */
   update(dt) {
     this.stateMachine?.update(dt);
   }
-  /**
-   * @param {Hitbox} hitbox
-   * @returns Whether this hitbox collided with another using AABB collision detection.
-   */
+
+  //shared collision detection
   didCollideWithEntity(hitbox) {
+    // Use claw hitbox when attacking, body hitbox otherwise
+    if (this.isClawActive()) {
+      return this.clawHitbox.didCollide(hitbox);
+    }
     return this.hitbox.didCollide(hitbox);
+  }
+
+  // Check if claw is active
+  isClawActive() {
+    return this.clawHitbox.dimensions.x > 0 && this.clawHitbox.dimensions.y > 0;
+  }
+
+  activateClawHitbox(x, y, width, height) {
+    this.clawHitbox.set(x, y, width, height);
+  }
+
+  deactivateClawHitbox() {
+    this.clawHitbox.set(0, 0, 0, 0);
+  }
+
+  //Shared damage system
+  receiveDamage(damage) {
+    if (this.isDead || this.isInvulnerable) {
+      return;
+    }
+
+    this.health -= damage;
+    this.becomeInvulnerable();
+
+    if (this.health <= 0) {
+      this.health = 0;
+      this.isDead = true;
+    }
+  }
+
+  // shared invulnerability system
+  becomeInvulnerable() {
+    this.isInvulnerable = true;
   }
 
   render(x, y) {

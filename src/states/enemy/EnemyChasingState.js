@@ -5,175 +5,244 @@ import EnemyStateName from "../../enums/EnemyStateName.js";
 import Tile from "../../services/Tile.js";
 import Player from "../../entities/player/Player.js";
 import Enemy from "../../entities/Enemy.js";
+import InteractType from "../../enums/InteractType.js";
 
 export default class EnemyChasingState extends State {
-  static ATTACK_RANGE = 40; // Stop moving when this close to player
+  // Distance thresholds for interactions
+  static ATTACK_RANGE = 35;
+  static PICKUP_RANGE = 30;
 
+  // Speed used when enemy is boosted
+  static SPEED_BOOST = 200;
+
+  /**
+   * Handles enemy behavior when actively chasing a target
+   */
   constructor(enemy) {
     super();
     this.enemy = enemy;
 
-    this.animation = {
+    // Walking animations (normal speed)
+    this.walkAnimation = {
       [Direction.Up]: new Animation([0, 1, 2, 3], 0.08),
       [Direction.Down]: new Animation([8, 9, 10, 11], 0.08),
       [Direction.Left]: new Animation([12, 13, 14, 15], 0.08),
       [Direction.Right]: new Animation([4, 5, 6, 7], 0.08),
     };
 
-    // Cooldown to prevent rapid direction changes
+    // Running animations (used when speed boost is active)
+    this.runAnimation = {
+      [Direction.Up]: new Animation([0, 1, 2, 3, 4, 5, 6, 7], 0.05),
+      [Direction.Down]: new Animation([16, 17, 18, 19, 20, 21, 22, 23], 0.05),
+      [Direction.Left]: new Animation([24, 25, 26, 27, 28, 29, 30, 31], 0.05),
+      [Direction.Right]: new Animation([8, 9, 10, 11, 12, 13, 14, 15], 0.05),
+    };
+
+    // Cooldowwn prevents constant direction changes every frame
     this.directionUpdateCooldown = 0;
-    this.directionUpdateInterval = 0.2; // Update direction every 0.2 seconds
+    this.directionUpdateInterval = 0.2;
   }
 
+  /**
+   * Callerd when the enemy enters the chasing state
+   */
   enter() {
-    this.enemy.speed = Enemy.CHASE_SPEED;
     this.directionUpdateCooldown = 0;
+    this.updateSpeedAndAnimation();
   }
 
+  /**
+   * Main update loop for chasing behavior
+   */
   update(dt) {
-    // Check if player is still in range
-    if (!this.enemy.isPlayerInRange()) {
-      // Player escaped - go back to walking
-      this.enemy.changeState(EnemyStateName.Walking);
+    this.updateSpeedAndAnimation();
+
+    // If target is lost, return to walking or running
+    if (!this.enemy.isTargetInRange()) {
+      if (this.enemy.speedBoostActive) {
+        this.enemy.changeState(EnemyStateName.Running);
+      } else {
+        this.enemy.changeState(EnemyStateName.Walking);
+      }
       return;
     }
 
-    // Check if enemy is close enough to attack (stop moving)
-    if (this.isInAttackRange()) {
-      this.enemy.direction = this.enemy.getDirectionToPlayer();
-      this.enemy.currentAnimation = this.animation[this.enemy.direction];
+    // If chasing a ball and close enough, pick it up
+    if (this.enemy.targetType === InteractType.Ball && this.isInPickupRange()) {
+      this.pickupBall();
+      this.enemy.changeState(EnemyStateName.Idling);
+      return;
+    }
+
+    // If close enough to attack player or enemy, switch to attack state
+    if (
+      (this.enemy.targetType === InteractType.Player ||
+        this.enemy.targetType === InteractType.Enemy) &&
+      this.isInAttackRange()
+    ) {
+      this.enemy.direction = this.enemy.getDirectionToTarget();
+      this.updateCurrentAnimation();
       this.enemy.changeState(EnemyStateName.Attacking);
       return;
     }
 
-    // Update direction cooldown
+    // Reduce direction cooldown timer
     this.directionUpdateCooldown -= dt;
 
-    // Only update direction periodically for smoother movement
+    // Update direction periodically to avoid jittery movement
     if (this.directionUpdateCooldown <= 0) {
-      this.enemy.direction = this.enemy.getDirectionToPlayer();
-      this.enemy.currentAnimation = this.animation[this.enemy.direction];
+      this.enemy.direction = this.enemy.getDirectionToTarget();
+      this.updateCurrentAnimation();
       this.directionUpdateCooldown = this.directionUpdateInterval;
     }
 
+    // Move toward the targe
     this.chase(dt);
   }
 
   /**
-   * Check if enemy is close enough to player to stop chasing
+   * Updates movement speed and sprite set depending on boost status
+   */
+  updateSpeedAndAnimation() {
+    if (this.enemy.speedBoostActive) {
+      this.enemy.speed = EnemyChasingState.SPEED_BOOST;
+      this.enemy.sprites = this.enemy.runningSprites;
+    } else {
+      this.enemy.speed = Enemy.CHASE_SPEED;
+      this.enemy.sprites = this.enemy.walkingSprites;
+    }
+  }
+
+  /**
+   * Updates the current animation based on direction and speed
+   */
+  updateCurrentAnimation() {
+    const animationSet = this.enemy.speedBoostActive
+      ? this.runAnimation
+      : this.walkAnimation;
+
+    this.enemy.currentAnimation = animationSet[this.enemy.direction];
+  }
+
+  /**
+   * Checks whether the enemy is close enough to attack its target
    */
   isInAttackRange() {
-    const enemyCenterX =
-      this.enemy.canvasPosition.x + (this.enemy.dimensions?.x || 32) / 2;
-    const enemyCenterY =
-      this.enemy.canvasPosition.y + (this.enemy.dimensions?.y || 32) / 2;
+    if (!this.enemy.currentTarget) return false;
 
-    const playerCenterX =
-      this.enemy.player.canvasPosition.x + (32 * (Player.SCALE || 1)) / 2;
-    const playerCenterY =
-      this.enemy.player.canvasPosition.y + (32 * (Player.SCALE || 1)) / 2;
-
-    const distance = Math.sqrt(
-      Math.pow(playerCenterX - enemyCenterX, 2) +
-        Math.pow(playerCenterY - enemyCenterY, 2)
+    const distance = this.enemy.getDistanceTo(
+      this.enemy.currentTarget.position
     );
 
     return distance <= EnemyChasingState.ATTACK_RANGE;
   }
 
+  /**
+   *checks whether the enemy is close enough to pick up a ball
+   */
+  isInPickupRange() {
+    if (
+      !this.enemy.currentTarget ||
+      this.enemy.targetType !== InteractType.Ball
+    )
+      return false;
+
+    const distance = this.enemy.getDistanceTo(
+      this.enemy.currentTarget.position
+    );
+
+    return distance <= EnemyChasingState.PICKUP_RANGE;
+  }
+
+  /**
+   * Triggers the ball's effect when picked up
+   */
+  pickupBall() {
+    if (this.enemy.currentTarget && !this.enemy.currentTarget.wasConsumed) {
+      this.enemy.currentTarget.onConsume(this.enemy);
+    }
+  }
+
+  /**
+   * Moves the enemy toward its target in a single direction
+   */
   chase(dt) {
     const moveDelta = this.enemy.speed * dt;
-    let newCanvasX = this.enemy.canvasPosition.x;
-    let newCanvasY = this.enemy.canvasPosition.y;
+    let newPositionX = this.enemy.position.x;
+    let newPositionY = this.enemy.position.y;
 
-    // Move in ONE direction at a time (no diagonal movement)
+    // Movement is restricted to one direction (no diagonals)
     switch (this.enemy.direction) {
       case Direction.Up:
-        newCanvasY -= moveDelta;
+        newPositionY -= moveDelta;
         break;
       case Direction.Down:
-        newCanvasY += moveDelta;
+        newPositionY += moveDelta;
         break;
       case Direction.Left:
-        newCanvasX -= moveDelta;
+        newPositionX -= moveDelta;
         break;
       case Direction.Right:
-        newCanvasX += moveDelta;
+        newPositionX += moveDelta;
         break;
     }
 
-    // Check map boundaries and collisions
-    if (this.isValidMove(newCanvasX, newCanvasY)) {
-      this.enemy.canvasPosition.x = newCanvasX;
-      this.enemy.canvasPosition.y = newCanvasY;
-      this.enemy.position.x = Math.floor(newCanvasX / Tile.SIZE);
-      this.enemy.position.y = Math.floor(newCanvasY / Tile.SIZE);
+    // Apply movement if valid, otherwise try alternate path
+    if (this.isValidMove(newPositionX, newPositionY)) {
+      this.enemy.position.x = newPositionX;
+      this.enemy.position.y = newPositionY;
     } else {
-      // Blocked - try to find alternate path
       this.tryAlternatePath(dt);
     }
   }
 
   /**
-   * If blocked, try moving perpendicular to get around obstacle
+   * Attemts to move around obstacles by changing direction
    */
   tryAlternatePath(dt) {
     const moveDelta = this.enemy.speed * dt;
-    let newCanvasX = this.enemy.canvasPosition.x;
-    let newCanvasY = this.enemy.canvasPosition.y;
+    let newPositionX = this.enemy.position.x;
+    let newPositionY = this.enemy.position.y;
 
-    // If moving horizontally and blocked, try vertical
+    // If blocked horizontally, try moving vertically
     if (
       this.enemy.direction === Direction.Left ||
       this.enemy.direction === Direction.Right
     ) {
-      // Try moving up or down instead
-      const playerCenterY = this.enemy.player.canvasPosition.y + 16;
-      const enemyCenterY = this.enemy.canvasPosition.y + Enemy.HEIGHT / 2;
+      const playerCenterY = this.enemy.player.position.y + 16;
+      const enemyCenterY = this.enemy.position.y + Enemy.HEIGHT / 2;
 
-      if (playerCenterY > enemyCenterY) {
-        newCanvasY += moveDelta;
-      } else {
-        newCanvasY -= moveDelta;
-      }
+      newPositionY += playerCenterY > enemyCenterY ? moveDelta : -moveDelta;
     }
-    // If moving vertically and blocked, try horizontal
+    // If blocked vertically, try moving horizontaly
     else {
-      const playerCenterX = this.enemy.player.canvasPosition.x + 16;
-      const enemyCenterX = this.enemy.canvasPosition.x + Enemy.WIDTH / 2;
+      const playerCenterX = this.enemy.player.position.x + 16;
+      const enemyCenterX = this.enemy.position.x + Enemy.WIDTH / 2;
 
-      if (playerCenterX > enemyCenterX) {
-        newCanvasX += moveDelta;
-      } else {
-        newCanvasX -= moveDelta;
-      }
+      newPositionX += playerCenterX > enemyCenterX ? moveDelta : -moveDelta;
     }
 
-    // Try the alternate path
-    if (this.isValidMove(newCanvasX, newCanvasY)) {
-      this.enemy.canvasPosition.x = newCanvasX;
-      this.enemy.canvasPosition.y = newCanvasY;
-      this.enemy.position.x = Math.floor(newCanvasX / Tile.SIZE);
-      this.enemy.position.y = Math.floor(newCanvasY / Tile.SIZE);
+    // Apply alternate movement if valid
+    if (this.isValidMove(newPositionX, newPositionY)) {
+      this.enemy.position.x = newPositionX;
+      this.enemy.position.y = newPositionY;
     }
-    // If still blocked, enemy just stops this frame
   }
 
-  isValidMove(canvasX, canvasY) {
-    // Check map boundaries
+  /**
+   * Validates movement against map boundaries and collision tiless
+   */
+  isValidMove(positionX, positionY) {
     const mapWidth = this.enemy.map.width * Tile.SIZE;
     const mapHeight = this.enemy.map.height * Tile.SIZE;
 
-    if (canvasX < 0 || canvasX + Enemy.WIDTH > mapWidth) {
-      return false;
-    }
-    if (canvasY < 0 || canvasY + Enemy.HEIGHT > mapHeight) {
-      return false;
-    }
+    // Prevent leaving map boundaries
+    if (positionX < 0 || positionX + Enemy.WIDTH > mapWidth) return false;
+    if (positionY < 0 || positionY + Enemy.HEIGHT > mapHeight) return false;
 
-    // Check collision layer
-    const tileX = Math.floor((canvasX + Enemy.WIDTH / 2) / Tile.SIZE);
-    const tileY = Math.floor((canvasY + Enemy.HEIGHT / 2) / Tile.SIZE);
+    // check collision layer at enemy's center
+    const tileX = Math.floor((positionX + Enemy.WIDTH / 2) / Tile.SIZE);
+    const tileY = Math.floor((positionY + Enemy.HEIGHT / 2) / Tile.SIZE);
 
     return this.enemy.map.collisionLayer.getTile(tileX, tileY) === null;
   }
